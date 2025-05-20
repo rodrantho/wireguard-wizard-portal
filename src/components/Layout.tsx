@@ -34,11 +34,10 @@ export default function Layout() {
         <Sidebar 
           className={collapsed ? "w-16 border-r" : "w-64 border-r"} 
           collapsible="icon"
-          onCollapsedChange={setCollapsed}
         >
           <div className="p-4 flex items-center justify-between">
             {!collapsed && <h1 className="text-lg font-bold text-vpn">WireGuard VPN</h1>}
-            <SidebarTrigger className="ml-auto" />
+            <SidebarTrigger className="ml-auto" onClick={() => setCollapsed(!collapsed)} />
           </div>
           
           <SidebarContent>
