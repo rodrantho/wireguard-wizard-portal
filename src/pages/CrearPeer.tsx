@@ -69,7 +69,7 @@ export default function CrearPeer() {
           ip,
           cliente.public_key,
           data.endpoint || cliente.ip_cloud,
-          data.port || "51820",
+          data.port || cliente.puerto || "51820",
           data.allowed_ips || "0.0.0.0/0"
         );
         

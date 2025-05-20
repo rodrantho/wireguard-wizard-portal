@@ -19,7 +19,8 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false }
       nombre: "",
       ip_cloud: "",
       public_key: "",
-      interfaz: ""
+      interfaz: "",
+      puerto: "51820"  // Valor por defecto
     }
   );
   
@@ -115,6 +116,21 @@ export default function ClienteForm({ onSubmit, initialData, isLoading = false }
             />
             {errors.interfaz && (
               <p className="text-red-500 text-sm">{errors.interfaz}</p>
+            )}
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="puerto">Puerto WireGuard</Label>
+            <Input 
+              id="puerto"
+              name="puerto"
+              value={formData.puerto}
+              onChange={handleChange}
+              placeholder="51820"
+              className={errors.puerto ? "border-red-500" : ""}
+            />
+            {errors.puerto && (
+              <p className="text-red-500 text-sm">{errors.puerto}</p>
             )}
           </div>
         </CardContent>

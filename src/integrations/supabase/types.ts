@@ -17,6 +17,7 @@ export type Database = {
           ip_cloud: string
           nombre: string
           public_key: string
+          puerto: string
         }
         Insert: {
           created_at?: string
@@ -25,6 +26,7 @@ export type Database = {
           ip_cloud: string
           nombre: string
           public_key: string
+          puerto?: string
         }
         Update: {
           created_at?: string
@@ -33,6 +35,7 @@ export type Database = {
           ip_cloud?: string
           nombre?: string
           public_key?: string
+          puerto?: string
         }
         Relationships: []
       }

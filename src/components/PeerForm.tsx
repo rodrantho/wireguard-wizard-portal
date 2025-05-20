@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -34,7 +33,7 @@ export default function PeerForm({
       nombre_peer: "",
       ip_asignada: "",
       endpoint: "",
-      port: "51820",
+      port: cliente?.puerto || "51820",
       allowed_ips: "0.0.0.0/0",
       count: 1,
       multiple: false
@@ -72,6 +71,18 @@ export default function PeerForm({
   const handleClienteChange = (value: string) => {
     if (onClienteChange) {
       onClienteChange(value);
+      
+      // Actualizar puerto en base al cliente seleccionado
+      if (allClientes) {
+        const selectedCliente = allClientes.find(c => c.id === value);
+        if (selectedCliente) {
+          setFormData(prev => ({
+            ...prev,
+            port: selectedCliente.puerto || "51820",
+            endpoint: selectedCliente.ip_cloud
+          }));
+        }
+      }
     }
   };
 
@@ -163,7 +174,7 @@ export default function PeerForm({
                 <Input 
                   id="port"
                   name="port"
-                  value={formData.port || "51820"}
+                  value={formData.port || (cliente?.puerto || "51820")}
                   onChange={handleChange}
                   placeholder="51820"
                 />

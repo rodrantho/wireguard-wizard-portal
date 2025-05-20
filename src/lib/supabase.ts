@@ -13,6 +13,7 @@ export type Cliente = {
   ip_cloud: string;
   public_key: string;
   interfaz: string;
+  puerto: string;  // Nuevo campo puerto
   created_at?: string;
 };
 

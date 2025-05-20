@@ -1,9 +1,9 @@
-
 export type ClienteFormData = {
   nombre: string;
   ip_cloud: string;
   public_key: string;
   interfaz: string;
+  puerto: string;
 };
 
 export type PeerFormData = {
