@@ -1,17 +1,9 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
+import { supabase as supabaseClient } from '@/integrations/supabase/client';
 
-// These will be provided by the Supabase integration
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || '';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || '';
-
-// Check if the Supabase URL and key are defined
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Supabase URL or Anon key is not defined. Please connect your project to Supabase.');
-}
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+// Export the supabase client from integrations directly
+export const supabase = supabaseClient;
 
 export type Cliente = {
   id: string;
