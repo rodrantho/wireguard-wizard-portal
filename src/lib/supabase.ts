@@ -1,6 +1,8 @@
+
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 // Export the supabase client from integrations directly
 export const supabase = supabaseClient;

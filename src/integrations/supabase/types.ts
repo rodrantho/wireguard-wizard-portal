@@ -9,7 +9,74 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      clientes: {
+        Row: {
+          created_at: string
+          id: string
+          interfaz: string
+          ip_cloud: string
+          nombre: string
+          public_key: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          interfaz: string
+          ip_cloud: string
+          nombre: string
+          public_key: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          interfaz?: string
+          ip_cloud?: string
+          nombre?: string
+          public_key?: string
+        }
+        Relationships: []
+      }
+      vpn_peers: {
+        Row: {
+          cliente_id: string
+          comando_mikrotik: string
+          config_texto: string
+          fecha_creacion: string
+          id: string
+          ip_asignada: string
+          nombre_peer: string
+          qr_img_url: string
+        }
+        Insert: {
+          cliente_id: string
+          comando_mikrotik: string
+          config_texto: string
+          fecha_creacion?: string
+          id?: string
+          ip_asignada: string
+          nombre_peer: string
+          qr_img_url: string
+        }
+        Update: {
+          cliente_id?: string
+          comando_mikrotik?: string
+          config_texto?: string
+          fecha_creacion?: string
+          id?: string
+          ip_asignada?: string
+          nombre_peer?: string
+          qr_img_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "vpn_peers_cliente_id_fkey"
+            columns: ["cliente_id"]
+            isOneToOne: false
+            referencedRelation: "clientes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
