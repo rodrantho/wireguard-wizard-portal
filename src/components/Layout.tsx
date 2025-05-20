@@ -29,11 +29,11 @@ export default function Layout() {
     isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
 
   return (
-    <SidebarProvider collapsedWidth={64}>
+    <SidebarProvider>
       <div className="min-h-screen flex w-full bg-gray-50">
         <Sidebar 
           className={collapsed ? "w-16 border-r" : "w-64 border-r"} 
-          collapsible
+          collapsible="icon"
           onCollapsedChange={setCollapsed}
         >
           <div className="p-4 flex items-center justify-between">
