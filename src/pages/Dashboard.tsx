@@ -11,7 +11,7 @@ import { createCliente, updateCliente } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash, FileText } from "lucide-react";
+import { Plus, Edit, Trash, FileText, Network, Users, Server, Database } from "lucide-react";
 
 export default function Dashboard() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -88,15 +88,21 @@ export default function Dashboard() {
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">Clientes WireGuard</h1>
+        <div className="flex items-center">
+          <Network className="h-8 w-8 text-vpn mr-3 animate-pulse-blue" />
+          <div>
+            <h1 className="text-2xl font-bold text-white">Clientes <span className="text-vpn">WG-NST</span></h1>
+            <p className="text-gray-400 text-sm">Gestión de clientes para VPN WireGuard</p>
+          </div>
+        </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-vpn hover:bg-vpn-dark">
+            <Button className="bg-vpn hover:bg-vpn-dark shadow-neon-blue">
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Cliente
             </Button>
           </DialogTrigger>
-          <DialogContent className="sm:max-w-md">
+          <DialogContent className="sm:max-w-md bg-card border-border/50">
             <DialogHeader>
               <DialogTitle>Nuevo Cliente</DialogTitle>
               <DialogDescription>
@@ -116,7 +122,7 @@ export default function Dashboard() {
           <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn"></div>
         </div>
       ) : clientes.length === 0 ? (
-        <Card>
+        <Card className="bg-card/50 backdrop-blur-sm border border-border/30 shadow-inner-glow">
           <CardHeader>
             <CardTitle>No hay clientes</CardTitle>
             <CardDescription>
@@ -124,7 +130,7 @@ export default function Dashboard() {
             </CardDescription>
           </CardHeader>
           <CardFooter>
-            <Button onClick={() => setIsAddDialogOpen(true)}>
+            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-vpn hover:bg-vpn-dark">
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Cliente
             </Button>
@@ -133,38 +139,52 @@ export default function Dashboard() {
       ) : (
         <div className="grid gap-6">
           {clientes.map((cliente) => (
-            <Card key={cliente.id}>
-              <CardHeader>
-                <CardTitle>{cliente.nombre}</CardTitle>
-                <CardDescription>Interfaz: {cliente.interfaz}</CardDescription>
+            <Card key={cliente.id} className="bg-cyber-glow backdrop-blur-sm border border-border/30 shadow-inner-glow hover:shadow-neon-blue transition-shadow duration-300">
+              <CardHeader className="pb-3">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <Server className="h-5 w-5 text-vpn mr-2" />
+                    <CardTitle>{cliente.nombre}</CardTitle>
+                  </div>
+                  <span className="text-xs text-gray-400 bg-secondary/50 px-2 py-1 rounded-md">
+                    Interfaz: {cliente.interfaz}
+                  </span>
+                </div>
+                <CardDescription className="mt-2">Cliente WireGuard</CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <p className="text-sm font-medium">IP Pública</p>
-                      <p className="text-sm text-gray-500">{cliente.ip_cloud}</p>
+                    <div className="bg-background/60 rounded-md p-3">
+                      <div className="flex items-center mb-1">
+                        <Database className="h-4 w-4 text-vpn-light mr-2" />
+                        <p className="text-sm font-medium text-gray-300">IP Pública</p>
+                      </div>
+                      <p className="text-sm text-gray-400 ml-6">{cliente.ip_cloud}</p>
                     </div>
-                    <div>
-                      <p className="text-sm font-medium">Clave Pública</p>
-                      <p className="text-sm text-gray-500 truncate">{cliente.public_key}</p>
+                    <div className="bg-background/60 rounded-md p-3">
+                      <div className="flex items-center mb-1">
+                        <Network className="h-4 w-4 text-vpn-light mr-2" />
+                        <p className="text-sm font-medium text-gray-300">Clave Pública</p>
+                      </div>
+                      <p className="text-sm text-gray-400 ml-6 truncate">{cliente.public_key}</p>
                     </div>
                   </div>
                 </div>
               </CardContent>
-              <CardFooter className="flex justify-between">
+              <CardFooter className="flex justify-between border-t border-border/20 pt-4">
                 <div className="flex space-x-2">
                   <Dialog open={isEditDialogOpen && selectedCliente?.id === cliente.id} onOpenChange={(open) => {
                     setIsEditDialogOpen(open);
                     if (!open) setSelectedCliente(null);
                   }}>
                     <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" onClick={() => setSelectedCliente(cliente)}>
+                      <Button variant="outline" size="sm" className="border-border/40 hover:bg-secondary/50" onClick={() => setSelectedCliente(cliente)}>
                         <Edit className="mr-1 h-4 w-4" />
                         Editar
                       </Button>
                     </DialogTrigger>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="sm:max-w-md bg-card border-border/50">
                       <DialogHeader>
                         <DialogTitle>Editar Cliente</DialogTitle>
                         <DialogDescription>
@@ -183,12 +203,12 @@ export default function Dashboard() {
                   
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-500 border-red-200 hover:bg-red-50">
+                      <Button variant="outline" size="sm" className="text-red-500 border-red-700/30 hover:bg-red-950/30">
                         <Trash className="mr-1 h-4 w-4" />
                         Eliminar
                       </Button>
                     </AlertDialogTrigger>
-                    <AlertDialogContent>
+                    <AlertDialogContent className="bg-card border-border/50">
                       <AlertDialogHeader>
                         <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
                         <AlertDialogDescription>
@@ -196,7 +216,7 @@ export default function Dashboard() {
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                        <AlertDialogCancel className="border-border/40 hover:bg-secondary/50">Cancelar</AlertDialogCancel>
                         <AlertDialogAction 
                           className="bg-red-500 hover:bg-red-600"
                           onClick={() => handleDeleteCliente(cliente.id)}
@@ -209,11 +229,11 @@ export default function Dashboard() {
                 </div>
                 
                 <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" onClick={() => handleViewPeers(cliente.id)}>
+                  <Button variant="outline" size="sm" className="border-border/40 hover:bg-secondary/50" onClick={() => handleViewPeers(cliente.id)}>
                     <FileText className="mr-1 h-4 w-4" />
                     Ver Peers
                   </Button>
-                  <Button size="sm" className="bg-vpn hover:bg-vpn-dark" onClick={() => handleAddPeer(cliente.id)}>
+                  <Button size="sm" className="bg-vpn hover:bg-vpn-dark shadow-neon-blue" onClick={() => handleAddPeer(cliente.id)}>
                     <Plus className="mr-1 h-4 w-4" />
                     Crear Peer
                   </Button>

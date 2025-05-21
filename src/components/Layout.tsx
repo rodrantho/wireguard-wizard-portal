@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Settings, FileText, LogOut } from "lucide-react";
+import { Users, Settings, FileText, LogOut, Network, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -26,21 +26,31 @@ export default function Layout() {
 
   const isActive = (path: string) => location.pathname === path;
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
-    isActive ? "bg-muted text-primary font-medium" : "hover:bg-muted/50";
+    isActive 
+      ? "bg-secondary/50 text-vpn font-medium border-l-2 border-vpn" 
+      : "hover:bg-secondary/30 border-l-2 border-transparent";
 
   return (
     <SidebarProvider>
-      <div className="min-h-screen flex w-full bg-gray-50">
+      <div className="min-h-screen flex w-full bg-background bg-grid-pattern bg-[size:50px_50px]">
         <Sidebar 
-          className={collapsed ? "w-16 border-r" : "w-64 border-r"} 
+          className={collapsed ? "w-16 border-r border-border/40" : "w-64 border-r border-border/40"} 
           collapsible="icon"
         >
           <div className="p-4 flex items-center justify-between">
-            {!collapsed && <h1 className="text-lg font-bold text-vpn">WireGuard VPN</h1>}
-            <SidebarTrigger className="ml-auto" onClick={() => setCollapsed(!collapsed)} />
+            {!collapsed && (
+              <div className="flex items-center">
+                <Network className="h-6 w-6 text-vpn mr-2 animate-pulse-blue" />
+                <h1 className="text-lg font-bold text-white">
+                  <span className="text-vpn">WG</span>-NST
+                </h1>
+              </div>
+            )}
+            {collapsed && <Network className="h-6 w-6 text-vpn mx-auto animate-pulse-blue" />}
+            <SidebarTrigger className={collapsed ? "mx-auto mt-4" : "ml-auto"} />
           </div>
           
-          <SidebarContent>
+          <SidebarContent className="mt-6">
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
@@ -54,7 +64,7 @@ export default function Layout() {
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
                   <NavLink to="/peers" className={getNavClass}>
-                    <FileText className="mr-2 h-5 w-5" />
+                    <ArrowRightLeft className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Peers VPN</span>}
                   </NavLink>
                 </SidebarMenuButton>
@@ -73,7 +83,7 @@ export default function Layout() {
             <div className="mt-auto mb-4 px-4">
               <Button 
                 variant="outline" 
-                className="w-full flex items-center" 
+                className="w-full flex items-center border-border/40 hover:bg-secondary/50 hover:text-red-400" 
                 onClick={handleLogout}
               >
                 <LogOut className="mr-2 h-4 w-4" />

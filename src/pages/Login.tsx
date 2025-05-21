@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { loginUser } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
+import { Network } from "lucide-react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -30,21 +31,28 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center bg-gray-50 p-4">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-vpn">WireGuard VPN Manager</h1>
-          <p className="text-gray-600 mt-2">Gestión de configuraciones VPN</p>
+    <div className="min-h-screen flex flex-col items-center justify-center bg-background bg-grid-pattern bg-[size:50px_50px] p-4">
+      <div className="w-full max-w-md relative">
+        <div className="absolute inset-0 bg-blue-500/10 blur-[100px] rounded-full"></div>
+        
+        <div className="text-center mb-8 relative z-10">
+          <div className="flex justify-center items-center mb-3">
+            <Network className="h-10 w-10 text-vpn animate-pulse-blue mr-2" />
+            <h1 className="text-4xl font-bold text-white">
+              <span className="text-vpn">WG</span>-NST
+            </h1>
+          </div>
+          <p className="text-gray-400 mt-2">Gestión de configuraciones VPN WireGuard</p>
         </div>
         
-        <Card>
+        <Card className="bg-cyber-glow backdrop-blur-sm border border-border/30 shadow-neon-blue relative z-10">
           <CardHeader>
             <CardTitle className="text-center">Iniciar sesión</CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-gray-300">Email</Label>
                 <Input 
                   id="email"
                   type="email"
@@ -52,21 +60,23 @@ export default function Login() {
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder="usuario@empresa.com"
                   required
+                  className="bg-secondary/30 border-border/40 focus:border-vpn focus:ring-1 focus:ring-vpn"
                 />
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="password">Contraseña</Label>
+                <Label htmlFor="password" className="text-gray-300">Contraseña</Label>
                 <Input 
                   id="password"
                   type="password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
+                  className="bg-secondary/30 border-border/40 focus:border-vpn focus:ring-1 focus:ring-vpn"
                 />
               </div>
               
-              <Button type="submit" className="w-full bg-vpn hover:bg-vpn-dark" disabled={loading}>
+              <Button type="submit" className="w-full bg-vpn hover:bg-vpn-dark shadow-neon-blue" disabled={loading}>
                 {loading ? "Iniciando sesión..." : "Iniciar sesión"}
               </Button>
             </form>
