@@ -30,9 +30,6 @@ export default function Layout() {
       ? "bg-secondary/50 text-vpn font-medium border-l-2 border-vpn" 
       : "hover:bg-secondary/30 border-l-2 border-transparent";
 
-  // Base path for GitHub Pages compatibility
-  const basePath = import.meta.env.BASE_URL || "/";
-
   return (
     <SidebarProvider>
       <div className="min-h-screen flex w-full bg-background bg-grid-pattern bg-[size:50px_50px]">
@@ -57,7 +54,7 @@ export default function Layout() {
             <SidebarMenu>
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to={`${basePath}dashboard`} className={getNavClass}>
+                  <NavLink to="/dashboard" className={getNavClass}>
                     <Users className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Clientes</span>}
                   </NavLink>
@@ -66,7 +63,7 @@ export default function Layout() {
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to={`${basePath}peers`} className={getNavClass}>
+                  <NavLink to="/peers" className={getNavClass}>
                     <ArrowRightLeft className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Peers VPN</span>}
                   </NavLink>
@@ -75,7 +72,7 @@ export default function Layout() {
               
               <SidebarMenuItem>
                 <SidebarMenuButton asChild>
-                  <NavLink to={`${basePath}settings`} className={getNavClass}>
+                  <NavLink to="/settings" className={getNavClass}>
                     <Settings className="mr-2 h-5 w-5" />
                     {!collapsed && <span>Configuración</span>}
                   </NavLink>
