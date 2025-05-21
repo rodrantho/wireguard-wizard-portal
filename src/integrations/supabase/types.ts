@@ -48,6 +48,8 @@ export type Database = {
           id: string
           ip_asignada: string
           nombre_peer: string
+          private_key: string | null
+          public_key: string | null
           qr_img_url: string
         }
         Insert: {
@@ -58,6 +60,8 @@ export type Database = {
           id?: string
           ip_asignada: string
           nombre_peer: string
+          private_key?: string | null
+          public_key?: string | null
           qr_img_url: string
         }
         Update: {
@@ -68,6 +72,8 @@ export type Database = {
           id?: string
           ip_asignada?: string
           nombre_peer?: string
+          private_key?: string | null
+          public_key?: string | null
           qr_img_url?: string
         }
         Relationships: [

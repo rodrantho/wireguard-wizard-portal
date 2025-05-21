@@ -34,11 +34,11 @@ export default function QRCodeDisplay({
   };
 
   return (
-    <Card className="w-full">
+    <Card className="w-full bg-black/30 backdrop-blur-lg border border-blue-500/30">
       <CardContent className="p-4">
         <div className="flex flex-col md:flex-row gap-6">
           <div className="flex-1 flex flex-col items-center">
-            <h3 className="text-lg font-medium mb-2">QR Code</h3>
+            <h3 className="text-lg font-medium mb-2 text-blue-400">QR Code</h3>
             <div className="p-2 bg-white border rounded-md">
               <img
                 src={qrImageUrl}
@@ -50,8 +50,8 @@ export default function QRCodeDisplay({
 
           <div className="flex-1 flex flex-col space-y-4">
             <div>
-              <h3 className="text-lg font-medium mb-2">Archivo de Configuración</h3>
-              <div className="bg-black text-green-400 p-4 rounded-md h-48 overflow-y-auto font-mono text-sm">
+              <h3 className="text-lg font-medium mb-2 text-blue-400">Archivo de Configuración</h3>
+              <div className="bg-black/70 text-green-400 p-4 rounded-md h-48 overflow-y-auto font-mono text-sm border border-blue-500/30">
                 <pre>{configText}</pre>
               </div>
               <div className="mt-2 flex space-x-2">
@@ -59,7 +59,7 @@ export default function QRCodeDisplay({
                   size="sm"
                   variant="outline"
                   onClick={handleCopyConfig}
-                  className="flex items-center"
+                  className="flex items-center border-blue-500/50 text-blue-400 hover:bg-blue-950/30"
                 >
                   <Copy className="mr-1 h-4 w-4" />
                   Copiar
@@ -68,7 +68,7 @@ export default function QRCodeDisplay({
                   size="sm"
                   variant="outline"
                   onClick={handleDownloadConfig}
-                  className="flex items-center"
+                  className="flex items-center border-blue-500/50 text-blue-400 hover:bg-blue-950/30"
                 >
                   <Download className="mr-1 h-4 w-4" />
                   Descargar .conf
@@ -77,8 +77,8 @@ export default function QRCodeDisplay({
             </div>
 
             <div>
-              <h3 className="text-lg font-medium mb-2">Comando MikroTik</h3>
-              <div className="bg-black text-green-400 p-4 rounded-md max-h-32 overflow-y-auto font-mono text-sm">
+              <h3 className="text-lg font-medium mb-2 text-blue-400">Comando MikroTik</h3>
+              <div className="bg-black/70 text-green-400 p-4 rounded-md max-h-32 overflow-y-auto font-mono text-sm border border-blue-500/30">
                 <pre>{commandText}</pre>
               </div>
               <div className="mt-2">
@@ -86,7 +86,7 @@ export default function QRCodeDisplay({
                   size="sm"
                   variant="outline"
                   onClick={handleCopyCommand}
-                  className="flex items-center"
+                  className="flex items-center border-blue-500/50 text-blue-400 hover:bg-blue-950/30"
                 >
                   <Copy className="mr-1 h-4 w-4" />
                   Copiar comando

@@ -70,7 +70,7 @@ export default function CrearPeer() {
           cliente.public_key,
           data.endpoint || cliente.ip_cloud,
           data.port || cliente.puerto || "51820",
-          data.allowed_ips || "0.0.0.0/0"
+          data.allowed_ips || "10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16"
         );
         
         // Crear comando MikroTik
@@ -122,14 +122,14 @@ export default function CrearPeer() {
   if (loading) {
     return (
       <div className="flex justify-center items-center h-64">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn"></div>
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
   }
   
   return (
     <div className="container mx-auto">
-      <h1 className="text-2xl font-bold mb-6">
+      <h1 className="text-2xl font-bold mb-6 text-blue-400">
         {showResults ? "Peers Generados" : "Crear Nuevo Peer VPN"}
       </h1>
       
@@ -147,9 +147,9 @@ export default function CrearPeer() {
       ) : (
         <div className="space-y-8">
           {generatedPeers.map((peer) => (
-            <Card key={peer.id} className="mb-6">
-              <CardHeader>
-                <CardTitle>{peer.nombre_peer}</CardTitle>
+            <Card key={peer.id} className="mb-6 bg-black/30 backdrop-blur-lg border border-blue-500/30">
+              <CardHeader className="border-b border-blue-500/20">
+                <CardTitle className="text-blue-400">{peer.nombre_peer}</CardTitle>
               </CardHeader>
               <CardContent>
                 <QRCodeDisplay
@@ -163,7 +163,10 @@ export default function CrearPeer() {
           ))}
           
           <div className="flex justify-end">
-            <Button onClick={handleFinish} className="bg-vpn hover:bg-vpn-dark">
+            <Button 
+              onClick={handleFinish} 
+              className="bg-blue-600 hover:bg-blue-700 text-white"
+            >
               Finalizar
             </Button>
           </div>
