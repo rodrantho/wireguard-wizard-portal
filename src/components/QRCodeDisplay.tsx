@@ -34,31 +34,37 @@ export default function QRCodeDisplay({
   };
 
   return (
-    <Card className="w-full bg-cyber-glow backdrop-blur-lg border border-blue-500/30 shadow-neon-blue">
+    <Card className="w-full bg-cyber-glow backdrop-blur-lg border border-blue-500/30 shadow-neon-blue overflow-hidden">
       <CardContent className="p-6">
-        <div className="flex flex-col md:flex-row gap-6">
-          <div className="flex-1 flex flex-col items-center">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="flex flex-col items-center">
             <div className="flex items-center mb-3">
               <QrCode className="h-5 w-5 text-blue-400 mr-2" />
               <h3 className="text-lg font-medium text-blue-400">QR Code</h3>
             </div>
-            <div className="p-3 bg-white border-2 border-blue-500/50 rounded-md shadow-neon-blue animate-pulse-blue">
-              <img
-                src={qrImageUrl}
-                alt="QR Code para configuración WireGuard"
-                className="w-64 h-64 object-contain"
-              />
+            <div className="p-3 bg-black/60 border-2 border-blue-500/50 rounded-md shadow-neon-blue">
+              {qrImageUrl ? (
+                <img
+                  src={qrImageUrl}
+                  alt="QR Code para configuración WireGuard"
+                  className="w-60 h-60 object-contain"
+                />
+              ) : (
+                <div className="w-60 h-60 flex items-center justify-center text-blue-400">
+                  Generando QR...
+                </div>
+              )}
             </div>
           </div>
 
-          <div className="flex-1 flex flex-col space-y-6">
+          <div className="flex flex-col space-y-6">
             <div>
               <div className="flex items-center mb-3">
                 <Terminal className="h-5 w-5 text-blue-400 mr-2" />
                 <h3 className="text-lg font-medium text-blue-400">Archivo de Configuración</h3>
               </div>
-              <div className="bg-black/70 text-green-400 p-4 rounded-md h-48 overflow-y-auto font-mono text-sm border border-blue-500/30 shadow-inner-glow">
-                <pre>{configText}</pre>
+              <div className="bg-black/70 text-green-400 p-4 rounded-md h-40 overflow-y-auto font-mono text-sm border border-blue-500/30 shadow-inner-glow">
+                <pre className="whitespace-pre-wrap break-all">{configText}</pre>
               </div>
               <div className="mt-3 flex space-x-3">
                 <Button
@@ -87,8 +93,8 @@ export default function QRCodeDisplay({
                 <Terminal className="h-5 w-5 text-blue-400 mr-2" />
                 <h3 className="text-lg font-medium text-blue-400">Comando MikroTik</h3>
               </div>
-              <div className="bg-black/70 text-green-400 p-4 rounded-md max-h-32 overflow-y-auto font-mono text-sm border border-blue-500/30 shadow-inner-glow">
-                <pre>{commandText}</pre>
+              <div className="bg-black/70 text-green-400 p-4 rounded-md max-h-28 overflow-y-auto font-mono text-sm border border-blue-500/30 shadow-inner-glow">
+                <pre className="whitespace-pre-wrap break-all">{commandText}</pre>
               </div>
               <div className="mt-3">
                 <Button

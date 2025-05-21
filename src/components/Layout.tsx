@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, Settings, FileText, LogOut, Network, ArrowRightLeft } from "lucide-react";
+import { Users, Settings, LogOut, Network, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -40,14 +40,14 @@ export default function Layout() {
           <div className="p-4 flex items-center justify-between">
             {!collapsed && (
               <div className="flex items-center">
-                <Network className="h-6 w-6 text-vpn mr-2 animate-pulse-blue" />
-                <h1 className="text-lg font-bold text-white">
+                <Network className="h-6 w-6 text-vpn animate-pulse" />
+                <h1 className="text-lg font-bold text-white ml-2">
                   <span className="text-vpn">WG</span>-NST
                 </h1>
               </div>
             )}
-            {collapsed && <Network className="h-6 w-6 text-vpn mx-auto animate-pulse-blue" />}
-            <SidebarTrigger className={collapsed ? "mx-auto mt-4" : "ml-auto"} />
+            {collapsed && <Network className="h-6 w-6 text-vpn mx-auto" />}
+            <SidebarTrigger className={collapsed ? "mx-auto mt-4" : ""} />
           </div>
           
           <SidebarContent className="mt-6">

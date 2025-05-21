@@ -1,6 +1,7 @@
 
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import QRCode from "qrcode.react"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -88,10 +89,27 @@ add allowed-address=${clientIp}/32 interface=${interfaceName} public-key="${publ
 }
 
 export async function generateQRCode(content: string): Promise<string> {
-  // In a real app, you'd use a QR code library
-  // Here we'll return a placeholder for now
-  // We'll use a real QR code library later when building the UI
-  return `data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==`;
+  try {
+    // Create a canvas element
+    const canvas = document.createElement('canvas');
+    const qrCodeSize = 256;
+    
+    // Generate QR code on canvas
+    QRCode.toCanvas(canvas, content, {
+      width: qrCodeSize,
+      height: qrCodeSize,
+      margin: 2,
+      level: 'M', // QR Code error correction level
+      backgroundColor: '#000000',
+      foregroundColor: '#3b82f6',
+    });
+    
+    // Convert canvas to data URL
+    return canvas.toDataURL('image/png');
+  } catch (error) {
+    console.error('Error generating QR code:', error);
+    return '';
+  }
 }
 
 export function convertToDownloadableLink(content: string, fileName: string) {
