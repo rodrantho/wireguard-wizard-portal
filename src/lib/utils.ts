@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import QRCode from "qrcode.react"
@@ -93,14 +92,14 @@ export async function generateQRCode(content: string): Promise<string> {
   try {
     // Create QR code SVG string using renderToString
     const qrCodeSvg = renderToString(
-      <QRCode
-        value={content}
-        size={256}
-        bgColor={"#000000"}
-        fgColor={"#3b82f6"}
-        level={"M"}
-        includeMargin={true}
-      />
+      QRCode({
+        value: content,
+        size: 256,
+        bgColor: "#000000",
+        fgColor: "#3b82f6",
+        level: "M",
+        includeMargin: true
+      })
     );
     
     const dataURL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrCodeSvg)}`;
