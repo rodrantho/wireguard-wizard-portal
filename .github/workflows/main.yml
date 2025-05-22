@@ -1,4 +1,3 @@
-
 name: Deploy to GitHub Pages
 
 on:
@@ -29,10 +28,12 @@ jobs:
         env:
           VITE_BASE_PATH: /wireguard-wizard-portal/
 
+      - name: Add CNAME to /dist
+        run: echo "wg.itxuy.com" > dist/CNAME
+
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
-          publish_branch: gh-pages  # Branch for GitHub Pages
-
+          publish_branch: gh-pages
