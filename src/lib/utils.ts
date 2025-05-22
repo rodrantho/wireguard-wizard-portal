@@ -92,16 +92,17 @@ add allowed-address=${clientIp}/32 interface=${interfaceName} public-key="${publ
 export async function generateQRCode(content: string): Promise<string> {
   try {
     // Create QR code SVG string using renderToString
-    const qrCodeComponent = <QRCode
-      value={content}
-      size={256}
-      bgColor={"#000000"}
-      fgColor={"#3b82f6"}
-      level={"M"}
-      includeMargin={true}
-    />;
+    const qrCodeSvg = renderToString(
+      <QRCode
+        value={content}
+        size={256}
+        bgColor={"#000000"}
+        fgColor={"#3b82f6"}
+        level={"M"}
+        includeMargin={true}
+      />
+    );
     
-    const qrCodeSvg = renderToString(qrCodeComponent);
     const dataURL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrCodeSvg)}`;
     
     return dataURL;
