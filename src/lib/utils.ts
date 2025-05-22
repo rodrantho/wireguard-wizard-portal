@@ -1,6 +1,8 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import QRCode from "qrcode.react"
+import { renderToString } from "react-dom/server"
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -89,25 +91,18 @@ add allowed-address=${clientIp}/32 interface=${interfaceName} public-key="${publ
 
 export async function generateQRCode(content: string): Promise<string> {
   try {
-    // Create a temporary div to render the QR code
-    const tempDiv = document.createElement('div');
-    document.body.appendChild(tempDiv);
+    // Create QR code SVG string using renderToString
+    const qrCodeComponent = <QRCode
+      value={content}
+      size={256}
+      bgColor={"#000000"}
+      fgColor={"#3b82f6"}
+      level={"M"}
+      includeMargin={true}
+    />;
     
-    // Render QR code to the div as SVG string
-    const qrCodeSvg = QRCode.toString(content, {
-      width: 256,
-      height: 256,
-      margin: 2,
-      level: 'M', // QR Code error correction level
-      bgcolor: '#000000',
-      fgcolor: '#3b82f6',
-    });
-    
-    // Create data URL from SVG
-    const dataURL = `data:image/svg+xml;utf8,${encodeURIComponent(qrCodeSvg)}`;
-    
-    // Clean up
-    document.body.removeChild(tempDiv);
+    const qrCodeSvg = renderToString(qrCodeComponent);
+    const dataURL = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(qrCodeSvg)}`;
     
     return dataURL;
   } catch (error) {

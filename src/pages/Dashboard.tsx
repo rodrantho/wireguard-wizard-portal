@@ -3,7 +3,6 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getClientes, Cliente, deleteCliente } from "@/lib/supabase";
 import ClienteForm from "@/components/ClienteForm";
 import { ClienteFormData } from "@/lib/types";
@@ -12,24 +11,40 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Plus, Edit, Trash, FileText, Network, Users, Server, Database } from "lucide-react";
+import { Input } from "@/components/ui/input";
 
 export default function Dashboard() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
+  const [filteredClientes, setFilteredClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     fetchClientes();
   }, []);
 
+  useEffect(() => {
+    if (searchTerm.trim() === "") {
+      setFilteredClientes(clientes);
+    } else {
+      const filtered = clientes.filter(cliente => 
+        cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        cliente.ip_cloud.includes(searchTerm)
+      );
+      setFilteredClientes(filtered);
+    }
+  }, [searchTerm, clientes]);
+
   const fetchClientes = async () => {
     try {
       const data = await getClientes();
       setClientes(data);
+      setFilteredClientes(data);
     } catch (error) {
       console.error("Error al cargar clientes:", error);
     } finally {
@@ -89,7 +104,7 @@ export default function Dashboard() {
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
         <div className="flex items-center">
-          <Network className="h-8 w-8 text-vpn mr-3 animate-pulse-blue" />
+          <Network className="h-8 w-8 text-vpn mr-3" />
           <div>
             <h1 className="text-2xl font-bold text-white">Clientes <span className="text-vpn">WG-NST</span></h1>
             <p className="text-gray-400 text-sm">Gestión de clientes para VPN WireGuard</p>
@@ -97,7 +112,7 @@ export default function Dashboard() {
         </div>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
-            <Button className="bg-vpn hover:bg-vpn-dark shadow-neon-blue">
+            <Button className="bg-vpn hover:bg-vpn-dark">
               <Plus className="mr-2 h-4 w-4" />
               Nuevo Cliente
             </Button>
@@ -116,17 +131,26 @@ export default function Dashboard() {
           </DialogContent>
         </Dialog>
       </div>
+      
+      <div className="mb-6">
+        <Input
+          placeholder="Buscar por nombre o IP..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-md border-border/40"
+        />
+      </div>
 
       {loading ? (
         <div className="flex justify-center my-12">
-          <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn"></div>
+          <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn animate-spin"></div>
         </div>
-      ) : clientes.length === 0 ? (
-        <Card className="bg-card/50 backdrop-blur-sm border border-border/30 shadow-inner-glow">
+      ) : filteredClientes.length === 0 ? (
+        <Card className="bg-card/50 backdrop-blur-sm border border-border/30">
           <CardHeader>
             <CardTitle>No hay clientes</CardTitle>
             <CardDescription>
-              Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard.
+              {searchTerm ? "No se encontraron resultados para la búsqueda." : "Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard."}
             </CardDescription>
           </CardHeader>
           <CardFooter>
@@ -138,8 +162,8 @@ export default function Dashboard() {
         </Card>
       ) : (
         <div className="grid gap-6">
-          {clientes.map((cliente) => (
-            <Card key={cliente.id} className="bg-cyber-glow backdrop-blur-sm border border-border/30 shadow-inner-glow hover:shadow-neon-blue transition-shadow duration-300">
+          {filteredClientes.map((cliente) => (
+            <Card key={cliente.id} className="bg-cyber-glow backdrop-blur-sm border border-border/30 hover:border-vpn/40 transition-colors duration-300">
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
@@ -233,7 +257,7 @@ export default function Dashboard() {
                     <FileText className="mr-1 h-4 w-4" />
                     Ver Peers
                   </Button>
-                  <Button size="sm" className="bg-vpn hover:bg-vpn-dark shadow-neon-blue" onClick={() => handleAddPeer(cliente.id)}>
+                  <Button size="sm" className="bg-vpn hover:bg-vpn-dark" onClick={() => handleAddPeer(cliente.id)}>
                     <Plus className="mr-1 h-4 w-4" />
                     Crear Peer
                   </Button>

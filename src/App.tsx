@@ -10,7 +10,6 @@ import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
 import Peers from "./pages/Peers";
 import CrearPeer from "./pages/CrearPeer";
-import Settings from "./pages/Settings";
 import Layout from "./components/Layout";
 import AuthCheck from "./components/AuthCheck";
 
@@ -33,7 +32,6 @@ const App = () => (
             <Route path="/peers/:clienteId" element={<Peers />} />
             <Route path="/crear-peer" element={<CrearPeer />} />
             <Route path="/crear-peer/:clienteId" element={<CrearPeer />} />
-            <Route path="/settings" element={<Settings />} />
           </Route>
           
           <Route path="*" element={<NotFound />} />
