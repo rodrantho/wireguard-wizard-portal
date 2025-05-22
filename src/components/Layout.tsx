@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, LogOut, ArrowRightLeft, Network, Settings } from "lucide-react";
+import { Users, LogOut, ArrowRightLeft, Network, Settings, Package } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -11,6 +11,8 @@ import { toast } from "sonner";
 import { CommandDialog, CommandInput, CommandList, CommandItem, Command } from "@/components/ui/command";
 import { getClientes, Cliente } from "@/lib/supabase";
 import { useEffect } from "react";
+
+const APP_VERSION = "2.0.3";
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -168,14 +170,29 @@ export default function Layout() {
                   {!collapsed && <span>Cerrar sesión</span>}
                 </Button>
               </div>
+              
+              {/* Versión del sistema */}
+              {!collapsed && (
+                <div className="mt-2 px-4 text-center">
+                  <div className="flex items-center justify-center text-xs text-muted-foreground">
+                    <Package className="h-3 w-3 mr-1" />
+                    <span>v{APP_VERSION}</span>
+                  </div>
+                </div>
+              )}
             </SidebarContent>
           </Sidebar>
 
           <div className="flex-1 flex flex-col overflow-hidden">
             <div className="py-2 px-4 border-b border-border/40 flex justify-between items-center">
-              <h2 className="text-sm font-medium text-vpn">
-                WireGuard VPN Manager
-              </h2>
+              <div className="flex items-center">
+                <h2 className="text-sm font-medium text-vpn">
+                  WireGuard VPN Manager
+                </h2>
+                <span className="ml-2 text-xs bg-secondary/50 px-2 py-0.5 rounded-full text-muted-foreground">
+                  v{APP_VERSION}
+                </span>
+              </div>
               <Button 
                 variant="outline" 
                 size="sm" 
