@@ -18,8 +18,7 @@ import Settings from "./pages/Settings";
 // Create the client as a constant outside of the component
 const queryClient = new QueryClient();
 
-// Make sure App is defined as a proper React functional component
-const App = () => {
+const App: React.FC = () => {
   return (
     <React.StrictMode>
       <QueryClientProvider client={queryClient}>
