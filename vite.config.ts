@@ -1,10 +1,11 @@
+
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react-swc";
 import path from "path";
 import { componentTagger } from "lovable-tagger";
 
 export default defineConfig(({ mode }) => ({
-  base: "/wireguard-wizard-portal/", // ✅ para que las rutas funcionen en GitHub Pages
+  base: "/wireguard-wizard-portal/", // ✅ GitHub Pages base path must match your repo name
   server: {
     host: "::",
     port: 8080,
