@@ -13,6 +13,7 @@ import Peers from "./pages/Peers";
 import CrearPeer from "./pages/CrearPeer";
 import Layout from "./components/Layout";
 import AuthCheck from "./components/AuthCheck";
+import Settings from "./pages/Settings";
 
 // Create the client as a constant outside of the component
 const queryClient = new QueryClient();
@@ -37,6 +38,7 @@ const App = () => {
                 <Route path="/peers/:clienteId" element={<Peers />} />
                 <Route path="/crear-peer" element={<CrearPeer />} />
                 <Route path="/crear-peer/:clienteId" element={<CrearPeer />} />
+                <Route path="/settings" element={<Settings />} />
               </Route>
               
               <Route path="*" element={<NotFound />} />

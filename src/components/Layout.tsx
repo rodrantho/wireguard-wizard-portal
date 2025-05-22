@@ -3,7 +3,7 @@ import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
 import { NavLink, useLocation } from "react-router-dom";
-import { Users, LogOut, ArrowRightLeft, Network } from "lucide-react";
+import { Users, LogOut, ArrowRightLeft, Network, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { logoutUser } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
@@ -144,6 +144,15 @@ export default function Layout() {
                     <NavLink to="/peers" className={getNavClass}>
                       <ArrowRightLeft className="mr-2 h-5 w-5" />
                       {!collapsed && <span>Peers VPN</span>}
+                    </NavLink>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <NavLink to="/settings" className={getNavClass}>
+                      <Settings className="mr-2 h-5 w-5" />
+                      {!collapsed && <span>Configuración</span>}
                     </NavLink>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
