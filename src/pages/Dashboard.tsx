@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,8 +9,19 @@ import { createCliente, updateCliente } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash, FileText, Network, Users, Server, Database } from "lucide-react";
+import { Plus, Edit, Trash, FileText, Network, Users, Server, Database, Settings, Heart, Filter, SortAsc, SortDesc } from "lucide-react";
 import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import ClientTagSelector from "@/components/ClientTagSelector";
+import TagManager from "@/components/TagManager";
+import { 
+  getUserPreferences, 
+  saveUserPreferences, 
+  getUserClientOrder, 
+  toggleClientFavorite, 
+  UserPreferences,
+  UserClientOrder
+} from "@/lib/userPreferences";
 
 export default function Dashboard() {
   const [clientes, setClientes] = useState<Cliente[]>([]);
@@ -20,25 +30,126 @@ export default function Dashboard() {
   const [selectedCliente, setSelectedCliente] = useState<Cliente | null>(null);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Estados para personalización
+  const [userPreferences, setUserPreferences] = useState<UserPreferences | null>(null);
+  const [clientOrders, setClientOrders] = useState<UserClientOrder[]>([]);
+  const [sortField, setSortField] = useState<string>('nombre');
+  const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
+  const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  
   const navigate = useNavigate();
 
   useEffect(() => {
-    fetchClientes();
+    initializeDashboard();
   }, []);
 
   useEffect(() => {
-    if (searchTerm.trim() === "") {
-      setFilteredClientes(clientes);
-    } else {
-      const filtered = clientes.filter(cliente => 
-        cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        cliente.ip_cloud.includes(searchTerm)
-      );
-      setFilteredClientes(filtered);
+    applyFiltersAndSorting();
+  }, [searchTerm, clientes, clientOrders, sortField, sortDirection, showOnlyFavorites]);
+
+  const initializeDashboard = async () => {
+    setLoading(true);
+    try {
+      const [clientesData, preferencesData, ordersData] = await Promise.all([
+        getClientes(),
+        getUserPreferences(),
+        getUserClientOrder()
+      ]);
+      
+      setClientes(clientesData);
+      setUserPreferences(preferencesData);
+      setClientOrders(ordersData);
+      
+      // Aplicar preferencias guardadas
+      if (preferencesData) {
+        setSortField(preferencesData.default_sort_field);
+        setSortDirection(preferencesData.default_sort_direction as 'asc' | 'desc');
+      }
+    } catch (error) {
+      console.error("Error al cargar datos del dashboard:", error);
+    } finally {
+      setLoading(false);
     }
-  }, [searchTerm, clientes]);
+  };
+
+  const applyFiltersAndSorting = () => {
+    let filtered = clientes.filter(cliente => 
+      cliente.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      cliente.ip_cloud.includes(searchTerm)
+    );
+
+    // Filtrar solo favoritos si está activado
+    if (showOnlyFavorites) {
+      const favoriteIds = new Set(
+        clientOrders.filter(order => order.is_favorite).map(order => order.cliente_id)
+      );
+      filtered = filtered.filter(cliente => favoriteIds.has(cliente.id));
+    }
+
+    // Aplicar ordenamiento
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortField as keyof Cliente];
+      let bValue: any = b[sortField as keyof Cliente];
+
+      // Para ordenamiento personalizado
+      if (sortField === 'custom_order') {
+        const aOrder = clientOrders.find(order => order.cliente_id === a.id)?.custom_order || 0;
+        const bOrder = clientOrders.find(order => order.cliente_id === b.id)?.custom_order || 0;
+        aValue = aOrder;
+        bValue = bOrder;
+      }
+
+      // Para favoritos
+      if (sortField === 'favorite') {
+        const aFav = clientOrders.find(order => order.cliente_id === a.id)?.is_favorite || false;
+        const bFav = clientOrders.find(order => order.cliente_id === b.id)?.is_favorite || false;
+        aValue = aFav ? 1 : 0;
+        bValue = bFav ? 1 : 0;
+      }
+
+      if (typeof aValue === 'string' && typeof bValue === 'string') {
+        const comparison = aValue.localeCompare(bValue);
+        return sortDirection === 'asc' ? comparison : -comparison;
+      }
+
+      if (aValue < bValue) return sortDirection === 'asc' ? -1 : 1;
+      if (aValue > bValue) return sortDirection === 'asc' ? 1 : -1;
+      return 0;
+    });
+
+    setFilteredClientes(filtered);
+  };
+
+  const handleSortChange = async (field: string) => {
+    const newDirection = field === sortField && sortDirection === 'asc' ? 'desc' : 'asc';
+    setSortField(field);
+    setSortDirection(newDirection);
+    
+    // Guardar preferencias
+    await saveUserPreferences({
+      default_sort_field: field,
+      default_sort_direction: newDirection
+    });
+  };
+
+  const handleToggleFavorite = async (clienteId: string) => {
+    try {
+      await toggleClientFavorite(clienteId);
+      // Refrescar órdenes de cliente
+      const ordersData = await getUserClientOrder();
+      setClientOrders(ordersData);
+    } catch (error) {
+      console.error('Error toggling favorite:', error);
+    }
+  };
+
+  const isClientFavorite = (clienteId: string) => {
+    return clientOrders.find(order => order.cliente_id === clienteId)?.is_favorite || false;
+  };
 
   const fetchClientes = async () => {
     try {
@@ -110,35 +221,90 @@ export default function Dashboard() {
             <p className="text-gray-400 text-sm">Gestión de clientes para VPN WireGuard</p>
           </div>
         </div>
-        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-          <DialogTrigger asChild>
-            <Button className="bg-vpn hover:bg-vpn-dark">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Cliente
-            </Button>
-          </DialogTrigger>
-          <DialogContent className="sm:max-w-md bg-card border-border/50">
-            <DialogHeader>
-              <DialogTitle>Nuevo Cliente</DialogTitle>
-              <DialogDescription>
-                Agrega un nuevo cliente para configurar VPN WireGuard
-              </DialogDescription>
-            </DialogHeader>
-            <ClienteForm 
-              onSubmit={handleCreateCliente} 
-              isLoading={isFormSubmitting}
-            />
-          </DialogContent>
-        </Dialog>
+        <div className="flex space-x-2">
+          <Dialog open={isSettingsOpen} onOpenChange={setIsSettingsOpen}>
+            <DialogTrigger asChild>
+              <Button variant="outline">
+                <Settings className="mr-2 h-4 w-4" />
+                Configuración
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-lg bg-card border-border/50">
+              <DialogHeader>
+                <DialogTitle>Configuración Personal</DialogTitle>
+                <DialogDescription>
+                  Gestiona tus etiquetas y preferencias de visualización
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-6">
+                <TagManager onTagsChange={() => {
+                  // Refrescar datos si es necesario
+                }} />
+              </div>
+            </DialogContent>
+          </Dialog>
+          
+          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-vpn hover:bg-vpn-dark">
+                <Plus className="mr-2 h-4 w-4" />
+                Nuevo Cliente
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-md bg-card border-border/50">
+              <DialogHeader>
+                <DialogTitle>Nuevo Cliente</DialogTitle>
+                <DialogDescription>
+                  Agrega un nuevo cliente para configurar VPN WireGuard
+                </DialogDescription>
+              </DialogHeader>
+              <ClienteForm 
+                onSubmit={handleCreateCliente} 
+                isLoading={isFormSubmitting}
+              />
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
       
-      <div className="mb-6">
-        <Input
-          placeholder="Buscar por nombre o IP..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-md border-border/40"
-        />
+      <div className="flex flex-col md:flex-row gap-4 mb-6">
+        <div className="flex-1">
+          <Input
+            placeholder="Buscar por nombre o IP..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="border-border/40"
+          />
+        </div>
+        <div className="flex space-x-2">
+          <Select value={sortField} onValueChange={handleSortChange}>
+            <SelectTrigger className="w-48">
+              <SelectValue placeholder="Ordenar por" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="nombre">Nombre</SelectItem>
+              <SelectItem value="ip_cloud">IP Pública</SelectItem>
+              <SelectItem value="created_at">Fecha de creación</SelectItem>
+              <SelectItem value="favorite">Favoritos</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => handleSortChange(sortField)}
+          >
+            {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+          </Button>
+          
+          <Button
+            variant={showOnlyFavorites ? "default" : "outline"}
+            size="sm"
+            onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+          >
+            <Heart className={`h-4 w-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+          </Button>
+        </div>
       </div>
 
       {loading ? (
@@ -150,7 +316,7 @@ export default function Dashboard() {
           <CardHeader>
             <CardTitle>No hay clientes</CardTitle>
             <CardDescription>
-              {searchTerm ? "No se encontraron resultados para la búsqueda." : "Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard."}
+              {searchTerm || showOnlyFavorites ? "No se encontraron resultados para los filtros aplicados." : "Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard."}
             </CardDescription>
           </CardHeader>
           <CardFooter>
@@ -168,13 +334,29 @@ export default function Dashboard() {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center">
                     <Server className="h-5 w-5 text-vpn mr-2" />
-                    <CardTitle>{cliente.nombre}</CardTitle>
+                    <CardTitle className="flex items-center">
+                      {cliente.nombre}
+                      <button
+                        onClick={() => handleToggleFavorite(cliente.id)}
+                        className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
+                      >
+                        <Heart className={`h-4 w-4 ${isClientFavorite(cliente.id) ? 'fill-current text-red-500' : ''}`} />
+                      </button>
+                    </CardTitle>
                   </div>
                   <span className="text-xs text-gray-400 bg-secondary/50 px-2 py-1 rounded-md">
                     Interfaz: {cliente.interfaz}
                   </span>
                 </div>
-                <CardDescription className="mt-2">Cliente WireGuard</CardDescription>
+                <CardDescription className="mt-2 flex items-center justify-between">
+                  <span>Cliente WireGuard</span>
+                  <ClientTagSelector 
+                    clienteId={cliente.id} 
+                    onTagsChange={() => {
+                      // Opcional: refrescar datos si es necesario
+                    }} 
+                  />
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
