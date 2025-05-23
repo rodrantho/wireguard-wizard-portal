@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
@@ -12,7 +11,7 @@ import { CommandDialog, CommandInput, CommandList, CommandItem, Command } from "
 import { getClientes, Cliente } from "@/lib/supabase";
 import { useEffect } from "react";
 
-const APP_VERSION = "2.0.3";
+const APP_VERSION = "2.0.5";
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
