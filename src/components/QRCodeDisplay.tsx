@@ -48,10 +48,21 @@ export default function QRCodeDisplay({
                   src={qrImageUrl}
                   alt="QR Code para configuración WireGuard"
                   className="w-60 h-60 object-contain"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    const parent = e.currentTarget.parentElement;
+                    if (parent) {
+                      const fallbackDiv = document.createElement('div');
+                      fallbackDiv.className = 'w-60 h-60 flex items-center justify-center text-blue-400 text-center flex-col';
+                      fallbackDiv.innerHTML = '<p>QR no disponible</p><p class="text-xs mt-2">Descargue el archivo de configuración</p>';
+                      parent.appendChild(fallbackDiv);
+                    }
+                  }}
                 />
               ) : (
-                <div className="w-60 h-60 flex items-center justify-center text-blue-400">
-                  Generando QR...
+                <div className="w-60 h-60 flex items-center justify-center text-blue-400 flex-col text-center">
+                  <p>QR proximamente</p>
+                  <p className="text-xs mt-2">Por favor descargue el archivo de configuración</p>
                 </div>
               )}
             </div>

@@ -5,11 +5,13 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getPeers, getClienteById, Cliente, VpnPeer, deletePeer } from "@/lib/supabase";
-import { Plus, Eye, Trash, Download } from "lucide-react";
+import { Plus, Eye, Trash, Download, Search } from "lucide-react";
 import { convertToDownloadableLink } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import QRCodeDisplay from "@/components/QRCodeDisplay";
+import { Input } from "@/components/ui/input";
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
 
 export default function Peers() {
   const { clienteId } = useParams<{ clienteId?: string }>();
@@ -17,19 +19,39 @@ export default function Peers() {
   
   const [loading, setLoading] = useState(true);
   const [peers, setPeers] = useState<any[]>([]);
+  const [filteredPeers, setFilteredPeers] = useState<any[]>([]);
   const [cliente, setCliente] = useState<Cliente | null>(null);
   const [selectedPeer, setSelectedPeer] = useState<VpnPeer | null>(null);
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
   
   useEffect(() => {
     fetchData();
   }, [clienteId]);
+  
+  useEffect(() => {
+    if (searchQuery) {
+      const filtered = peers.filter(peer => 
+        peer.nombre_peer.toLowerCase().includes(searchQuery.toLowerCase()) || 
+        peer.ip_asignada.includes(searchQuery)
+      );
+      setFilteredPeers(filtered);
+    } else {
+      setFilteredPeers(peers);
+    }
+    setCurrentPage(1); // Reset to first page when filter changes
+  }, [searchQuery, peers]);
   
   const fetchData = async () => {
     setLoading(true);
     try {
       const peersData = await getPeers(clienteId);
       setPeers(peersData);
+      setFilteredPeers(peersData);
       
       if (clienteId) {
         const clienteData = await getClienteById(clienteId);
@@ -59,6 +81,7 @@ export default function Peers() {
     try {
       await deletePeer(id);
       setPeers(peers.filter(p => p.id !== id));
+      setFilteredPeers(filteredPeers.filter(p => p.id !== id));
     } catch (error) {
       console.error("Error al eliminar peer:", error);
     }
@@ -67,7 +90,16 @@ export default function Peers() {
   const handleDownloadConfig = (peer: VpnPeer) => {
     convertToDownloadableLink(peer.config_texto, `${peer.nombre_peer.replace(/\s+/g, "_")}.conf`);
   };
+
+  // Get current peers for pagination
+  const indexOfLastItem = currentPage * itemsPerPage;
+  const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+  const currentPeers = filteredPeers.slice(indexOfFirstItem, indexOfLastItem);
+  const totalPages = Math.ceil(filteredPeers.length / itemsPerPage);
   
+  // Change page
+  const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
+
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -108,79 +140,157 @@ export default function Peers() {
         </Card>
       ) : (
         <Card>
+          <CardHeader>
+            <div className="flex items-center border rounded-md px-3 py-2 bg-background">
+              <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+              <Input
+                placeholder="Buscar por nombre o IP..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="border-none shadow-none focus-visible:ring-0 flex-1"
+              />
+              {searchQuery && (
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => setSearchQuery("")}
+                  className="h-5 w-5 p-0"
+                >
+                  ×
+                </Button>
+              )}
+            </div>
+            {filteredPeers.length === 0 && (
+              <p className="text-center mt-2 text-sm text-muted-foreground">
+                No se encontraron peers con ese criterio
+              </p>
+            )}
+          </CardHeader>
+          
           <CardContent className="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Nombre</TableHead>
-                  {!clienteId && <TableHead>Cliente</TableHead>}
-                  <TableHead>IP Asignada</TableHead>
-                  <TableHead>Fecha Creación</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {peers.map((peer) => (
-                  <TableRow key={peer.id}>
-                    <TableCell className="font-medium">{peer.nombre_peer}</TableCell>
-                    {!clienteId && (
-                      <TableCell>{peer.clientes?.nombre}</TableCell>
-                    )}
-                    <TableCell>{peer.ip_asignada}</TableCell>
-                    <TableCell>
-                      {new Date(peer.fecha_creacion).toLocaleDateString()}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex justify-end space-x-2">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleViewPeer(peer)}
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => handleDownloadConfig(peer)}
-                        >
-                          <Download className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              className="text-red-500 border-red-200 hover:bg-red-50"
-                            >
-                              <Trash className="h-4 w-4" />
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>¿Eliminar peer?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Esta acción eliminará permanentemente el peer VPN "{peer.nombre_peer}".
-                                Esta acción no se puede deshacer.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeletePeer(peer.id)}
-                                className="bg-red-500 hover:bg-red-600"
-                              >
-                                Eliminar
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
-                    </TableCell>
+            {filteredPeers.length > 0 && (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Nombre</TableHead>
+                    {!clienteId && <TableHead>Cliente</TableHead>}
+                    <TableHead>IP Asignada</TableHead>
+                    <TableHead>Fecha Creación</TableHead>
+                    <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                </TableHeader>
+                <TableBody>
+                  {currentPeers.map((peer) => (
+                    <TableRow key={peer.id}>
+                      <TableCell className="font-medium">{peer.nombre_peer}</TableCell>
+                      {!clienteId && (
+                        <TableCell>{peer.clientes?.nombre}</TableCell>
+                      )}
+                      <TableCell>{peer.ip_asignada}</TableCell>
+                      <TableCell>
+                        {new Date(peer.fecha_creacion).toLocaleDateString()}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end space-x-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleViewPeer(peer)}
+                          >
+                            <Eye className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={() => handleDownloadConfig(peer)}
+                          >
+                            <Download className="h-4 w-4" />
+                          </Button>
+                          <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                className="text-red-500 border-red-200 hover:bg-red-50"
+                              >
+                                <Trash className="h-4 w-4" />
+                              </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                              <AlertDialogHeader>
+                                <AlertDialogTitle>¿Eliminar peer?</AlertDialogTitle>
+                                <AlertDialogDescription>
+                                  Esta acción eliminará permanentemente el peer VPN "{peer.nombre_peer}".
+                                  Esta acción no se puede deshacer.
+                                </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogAction 
+                                  onClick={() => handleDeletePeer(peer.id)}
+                                  className="bg-red-500 hover:bg-red-600"
+                                >
+                                  Eliminar
+                                </AlertDialogAction>
+                              </AlertDialogFooter>
+                            </AlertDialogContent>
+                          </AlertDialog>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            
+            {/* Pagination */}
+            {filteredPeers.length > itemsPerPage && (
+              <div className="py-4">
+                <Pagination>
+                  <PaginationContent>
+                    <PaginationItem>
+                      <PaginationPrevious 
+                        onClick={() => currentPage > 1 && paginate(currentPage - 1)}
+                        className={currentPage === 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                    
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                      // Logic to show current page and nearby pages
+                      let pageNumber;
+                      if (totalPages <= 5) {
+                        pageNumber = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNumber = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNumber = totalPages - 4 + i;
+                      } else {
+                        pageNumber = currentPage - 2 + i;
+                      }
+                      
+                      return (
+                        <PaginationItem key={i}>
+                          <PaginationLink
+                            onClick={() => paginate(pageNumber)}
+                            isActive={currentPage === pageNumber}
+                            className="cursor-pointer"
+                          >
+                            {pageNumber}
+                          </PaginationLink>
+                        </PaginationItem>
+                      );
+                    })}
+                    
+                    <PaginationItem>
+                      <PaginationNext 
+                        onClick={() => currentPage < totalPages && paginate(currentPage + 1)}
+                        className={currentPage === totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                      />
+                    </PaginationItem>
+                  </PaginationContent>
+                </Pagination>
+              </div>
+            )}
           </CardContent>
         </Card>
       )}
