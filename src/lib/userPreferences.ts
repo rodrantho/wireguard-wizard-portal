@@ -26,6 +26,7 @@ export type UserPreferences = {
   default_sort_field: string;
   default_sort_direction: string;
   items_per_page: number;
+  view_mode: string;
   created_at: string;
   updated_at: string;
 };
@@ -189,7 +190,7 @@ export async function getUserPreferences() {
   }
 }
 
-export async function saveUserPreferences(preferences: Partial<Pick<UserPreferences, 'default_sort_field' | 'default_sort_direction' | 'items_per_page'>>) {
+export async function saveUserPreferences(preferences: Partial<Pick<UserPreferences, 'default_sort_field' | 'default_sort_direction' | 'items_per_page' | 'view_mode'>>) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuario no autenticado');
@@ -200,6 +201,8 @@ export async function saveUserPreferences(preferences: Partial<Pick<UserPreferen
         user_id: user.id, 
         ...preferences,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id'
       });
 
     if (error) throw error;

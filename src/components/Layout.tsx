@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { SidebarProvider, SidebarTrigger, Sidebar, SidebarContent, SidebarMenu, SidebarMenuItem, SidebarMenuButton } from "@/components/ui/sidebar";
@@ -11,7 +12,7 @@ import { CommandDialog, CommandInput, CommandList, CommandItem, Command } from "
 import { getClientes, Cliente } from "@/lib/supabase";
 import { useEffect } from "react";
 
-const APP_VERSION = "2.0.5";
+const APP_VERSION = "2.0.6";
 
 export default function Layout() {
   const [collapsed, setCollapsed] = useState(false);
@@ -183,7 +184,7 @@ export default function Layout() {
           </Sidebar>
 
           <div className="flex-1 flex flex-col overflow-hidden">
-            <div className="py-2 px-4 border-b border-border/40 flex justify-between items-center">
+            <div className="py-2 px-4 border-b border-border/40 flex justify-between items-center bg-background/80 backdrop-blur-sm">
               <div className="flex items-center">
                 <h2 className="text-sm font-medium text-vpn">
                   WireGuard VPN Manager
@@ -195,10 +196,10 @@ export default function Layout() {
               <Button 
                 variant="outline" 
                 size="sm" 
-                className="text-xs border-border/40"
+                className="text-xs border-border/40 bg-background/50 hover:bg-secondary/50"
                 onClick={() => setCommandOpen(true)}
               >
-                <span className="mr-2">Buscar clientes</span>
+                <span className="mr-2">🔍 Buscar clientes</span>
                 <kbd className="pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border border-border/40 bg-background px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
                   <span className="text-xs">⌘</span>K
                 </kbd>

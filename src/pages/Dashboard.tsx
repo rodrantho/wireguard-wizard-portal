@@ -8,12 +8,12 @@ import { ClienteFormData } from "@/lib/types";
 import { createCliente, updateCliente } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
-import { Plus, Edit, Trash, FileText, Network, Users, Server, Database, Settings, Heart, Filter, SortAsc, SortDesc } from "lucide-react";
+import { Plus, Network, Heart, Filter, SortAsc, SortDesc, Settings } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import ClientTagSelector from "@/components/ClientTagSelector";
 import TagManager from "@/components/TagManager";
+import ViewModeSelector, { ViewMode } from "@/components/ViewModeSelector";
+import ClientCard from "@/components/ClientCard";
 import { 
   getUserPreferences, 
   saveUserPreferences, 
@@ -40,6 +40,7 @@ export default function Dashboard() {
   const [sortField, setSortField] = useState<string>('nombre');
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   const [showOnlyFavorites, setShowOnlyFavorites] = useState(false);
+  const [viewMode, setViewMode] = useState<ViewMode>('expanded');
   
   const navigate = useNavigate();
 
@@ -68,6 +69,9 @@ export default function Dashboard() {
       if (preferencesData) {
         setSortField(preferencesData.default_sort_field);
         setSortDirection(preferencesData.default_sort_direction as 'asc' | 'desc');
+        if (preferencesData.view_mode) {
+          setViewMode(preferencesData.view_mode as ViewMode);
+        }
       }
     } catch (error) {
       console.error("Error al cargar datos del dashboard:", error);
@@ -211,6 +215,43 @@ export default function Dashboard() {
     navigate(`/peers/${clienteId}`);
   };
 
+  const handleViewModeChange = async (mode: ViewMode) => {
+    setViewMode(mode);
+    await saveUserPreferences({ view_mode: mode });
+  };
+
+  const renderClientCards = () => {
+    const gridClass = viewMode === 'grid' 
+      ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
+      : 'grid gap-6';
+
+    return (
+      <div className={gridClass}>
+        {filteredClientes.map((cliente) => (
+          <ClientCard
+            key={cliente.id}
+            cliente={cliente}
+            viewMode={viewMode}
+            isFormSubmitting={isFormSubmitting}
+            isEditDialogOpen={isEditDialogOpen}
+            selectedClienteId={selectedCliente?.id || null}
+            isFavorite={isClientFavorite(cliente.id)}
+            onEdit={setSelectedCliente}
+            onDelete={handleDeleteCliente}
+            onViewPeers={handleViewPeers}
+            onAddPeer={handleAddPeer}
+            onToggleFavorite={handleToggleFavorite}
+            onUpdate={handleUpdateCliente}
+            onEditDialogChange={(open) => {
+              setIsEditDialogOpen(open);
+              if (!open) setSelectedCliente(null);
+            }}
+          />
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="container mx-auto">
       <div className="flex justify-between items-center mb-6">
@@ -237,9 +278,7 @@ export default function Dashboard() {
                 </DialogDescription>
               </DialogHeader>
               <div className="space-y-6">
-                <TagManager onTagsChange={() => {
-                  // Refrescar datos si es necesario
-                }} />
+                <TagManager onTagsChange={() => {}} />
               </div>
             </DialogContent>
           </Dialog>
@@ -258,10 +297,7 @@ export default function Dashboard() {
                   Agrega un nuevo cliente para configurar VPN WireGuard
                 </DialogDescription>
               </DialogHeader>
-              <ClienteForm 
-                onSubmit={handleCreateCliente} 
-                isLoading={isFormSubmitting}
-              />
+              <ClienteForm onSubmit={handleCreateCliente} isLoading={isFormSubmitting} />
             </DialogContent>
           </Dialog>
         </div>
@@ -304,6 +340,8 @@ export default function Dashboard() {
           >
             <Heart className={`h-4 w-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
           </Button>
+
+          <ViewModeSelector viewMode={viewMode} onViewModeChange={handleViewModeChange} />
         </div>
       </div>
 
@@ -327,127 +365,7 @@ export default function Dashboard() {
           </CardFooter>
         </Card>
       ) : (
-        <div className="grid gap-6">
-          {filteredClientes.map((cliente) => (
-            <Card key={cliente.id} className="bg-cyber-glow backdrop-blur-sm border border-border/30 hover:border-vpn/40 transition-colors duration-300">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Server className="h-5 w-5 text-vpn mr-2" />
-                    <CardTitle className="flex items-center">
-                      {cliente.nombre}
-                      <button
-                        onClick={() => handleToggleFavorite(cliente.id)}
-                        className="ml-2 text-gray-400 hover:text-red-500 transition-colors"
-                      >
-                        <Heart className={`h-4 w-4 ${isClientFavorite(cliente.id) ? 'fill-current text-red-500' : ''}`} />
-                      </button>
-                    </CardTitle>
-                  </div>
-                  <span className="text-xs text-gray-400 bg-secondary/50 px-2 py-1 rounded-md">
-                    Interfaz: {cliente.interfaz}
-                  </span>
-                </div>
-                <CardDescription className="mt-2 flex items-center justify-between">
-                  <span>Cliente WireGuard</span>
-                  <ClientTagSelector 
-                    clienteId={cliente.id} 
-                    onTagsChange={() => {
-                      // Opcional: refrescar datos si es necesario
-                    }} 
-                  />
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="bg-background/60 rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <Database className="h-4 w-4 text-vpn-light mr-2" />
-                        <p className="text-sm font-medium text-gray-300">IP Pública</p>
-                      </div>
-                      <p className="text-sm text-gray-400 ml-6">{cliente.ip_cloud}</p>
-                    </div>
-                    <div className="bg-background/60 rounded-md p-3">
-                      <div className="flex items-center mb-1">
-                        <Network className="h-4 w-4 text-vpn-light mr-2" />
-                        <p className="text-sm font-medium text-gray-300">Clave Pública</p>
-                      </div>
-                      <p className="text-sm text-gray-400 ml-6 truncate">{cliente.public_key}</p>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-              <CardFooter className="flex justify-between border-t border-border/20 pt-4">
-                <div className="flex space-x-2">
-                  <Dialog open={isEditDialogOpen && selectedCliente?.id === cliente.id} onOpenChange={(open) => {
-                    setIsEditDialogOpen(open);
-                    if (!open) setSelectedCliente(null);
-                  }}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="border-border/40 hover:bg-secondary/50" onClick={() => setSelectedCliente(cliente)}>
-                        <Edit className="mr-1 h-4 w-4" />
-                        Editar
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-md bg-card border-border/50">
-                      <DialogHeader>
-                        <DialogTitle>Editar Cliente</DialogTitle>
-                        <DialogDescription>
-                          Actualiza la información del cliente
-                        </DialogDescription>
-                      </DialogHeader>
-                      {selectedCliente && (
-                        <ClienteForm 
-                          onSubmit={handleUpdateCliente} 
-                          initialData={selectedCliente}
-                          isLoading={isFormSubmitting}
-                        />
-                      )}
-                    </DialogContent>
-                  </Dialog>
-                  
-                  <AlertDialog>
-                    <AlertDialogTrigger asChild>
-                      <Button variant="outline" size="sm" className="text-red-500 border-red-700/30 hover:bg-red-950/30">
-                        <Trash className="mr-1 h-4 w-4" />
-                        Eliminar
-                      </Button>
-                    </AlertDialogTrigger>
-                    <AlertDialogContent className="bg-card border-border/50">
-                      <AlertDialogHeader>
-                        <AlertDialogTitle>¿Estás seguro?</AlertDialogTitle>
-                        <AlertDialogDescription>
-                          Esta acción eliminará el cliente y todos sus peers VPN asociados. Esta acción no se puede deshacer.
-                        </AlertDialogDescription>
-                      </AlertDialogHeader>
-                      <AlertDialogFooter>
-                        <AlertDialogCancel className="border-border/40 hover:bg-secondary/50">Cancelar</AlertDialogCancel>
-                        <AlertDialogAction 
-                          className="bg-red-500 hover:bg-red-600"
-                          onClick={() => handleDeleteCliente(cliente.id)}
-                        >
-                          Eliminar
-                        </AlertDialogAction>
-                      </AlertDialogFooter>
-                    </AlertDialogContent>
-                  </AlertDialog>
-                </div>
-                
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="sm" className="border-border/40 hover:bg-secondary/50" onClick={() => handleViewPeers(cliente.id)}>
-                    <FileText className="mr-1 h-4 w-4" />
-                    Ver Peers
-                  </Button>
-                  <Button size="sm" className="bg-vpn hover:bg-vpn-dark" onClick={() => handleAddPeer(cliente.id)}>
-                    <Plus className="mr-1 h-4 w-4" />
-                    Crear Peer
-                  </Button>
-                </div>
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
+        renderClientCards()
       )}
     </div>
   );
