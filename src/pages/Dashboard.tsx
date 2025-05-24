@@ -237,6 +237,7 @@ export default function Dashboard() {
               onEdit={setSelectedCliente}
               onDelete={handleDeleteCliente}
               onView={handleViewPeers}
+              onCreatePeer={handleAddPeer}
               onToggleFavorite={handleToggleFavorite}
             />
           );
