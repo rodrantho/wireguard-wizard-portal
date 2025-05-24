@@ -134,6 +134,7 @@ export type Database = {
           items_per_page: number | null
           updated_at: string
           user_id: string
+          view_mode: string | null
         }
         Insert: {
           created_at?: string
@@ -143,6 +144,7 @@ export type Database = {
           items_per_page?: number | null
           updated_at?: string
           user_id: string
+          view_mode?: string | null
         }
         Update: {
           created_at?: string
@@ -152,6 +154,7 @@ export type Database = {
           items_per_page?: number | null
           updated_at?: string
           user_id?: string
+          view_mode?: string | null
         }
         Relationships: []
       }
@@ -184,6 +187,7 @@ export type Database = {
           cliente_id: string
           comando_mikrotik: string
           config_texto: string
+          estado: string | null
           fecha_creacion: string
           id: string
           ip_asignada: string
@@ -196,6 +200,7 @@ export type Database = {
           cliente_id: string
           comando_mikrotik: string
           config_texto: string
+          estado?: string | null
           fecha_creacion?: string
           id?: string
           ip_asignada: string
@@ -208,6 +213,7 @@ export type Database = {
           cliente_id?: string
           comando_mikrotik?: string
           config_texto?: string
+          estado?: string | null
           fecha_creacion?: string
           id?: string
           ip_asignada?: string

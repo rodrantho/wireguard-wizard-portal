@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getPeers, getClienteById, Cliente, VpnPeer, deletePeer } from "@/lib/supabase";
+import { getPeers, getClienteById, Cliente, VpnPeer, deletePeer, updatePeer } from "@/lib/supabase";
 import { Plus, Eye, Trash, Download, Search } from "lucide-react";
 import { convertToDownloadableLink } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -12,6 +12,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import QRCodeDisplay from "@/components/QRCodeDisplay";
 import { Input } from "@/components/ui/input";
 import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 
 export default function Peers() {
   const { clienteId } = useParams<{ clienteId?: string }>();
@@ -86,9 +88,40 @@ export default function Peers() {
       console.error("Error al eliminar peer:", error);
     }
   };
+
+  const handleEstadoChange = async (peerId: string, newEstado: string) => {
+    try {
+      await updatePeer(peerId, { estado: newEstado });
+      const updatedPeers = peers.map(peer => 
+        peer.id === peerId ? { ...peer, estado: newEstado } : peer
+      );
+      setPeers(updatedPeers);
+      setFilteredPeers(updatedPeers.filter(peer => 
+        searchQuery ? (
+          peer.nombre_peer.toLowerCase().includes(searchQuery.toLowerCase()) || 
+          peer.ip_asignada.includes(searchQuery)
+        ) : true
+      ));
+    } catch (error) {
+      console.error("Error al actualizar estado:", error);
+    }
+  };
   
   const handleDownloadConfig = (peer: VpnPeer) => {
     convertToDownloadableLink(peer.config_texto, `${peer.nombre_peer.replace(/\s+/g, "_")}.conf`);
+  };
+
+  const getEstadoBadgeColor = (estado: string) => {
+    switch (estado) {
+      case 'activo':
+        return 'bg-green-100 text-green-800';
+      case 'inactivo':
+        return 'bg-gray-100 text-gray-800';
+      case 'suspendido':
+        return 'bg-red-100 text-red-800';
+      default:
+        return 'bg-blue-100 text-blue-800';
+    }
   };
 
   // Get current peers for pagination
@@ -175,6 +208,7 @@ export default function Peers() {
                     <TableHead>Nombre</TableHead>
                     {!clienteId && <TableHead>Cliente</TableHead>}
                     <TableHead>IP Asignada</TableHead>
+                    <TableHead>Estado</TableHead>
                     <TableHead>Fecha Creación</TableHead>
                     <TableHead className="text-right">Acciones</TableHead>
                   </TableRow>
@@ -187,6 +221,31 @@ export default function Peers() {
                         <TableCell>{peer.clientes?.nombre}</TableCell>
                       )}
                       <TableCell>{peer.ip_asignada}</TableCell>
+                      <TableCell>
+                        <Select
+                          value={peer.estado || 'activo'}
+                          onValueChange={(value) => handleEstadoChange(peer.id, value)}
+                        >
+                          <SelectTrigger className="w-32">
+                            <SelectValue>
+                              <Badge className={getEstadoBadgeColor(peer.estado || 'activo')}>
+                                {peer.estado || 'activo'}
+                              </Badge>
+                            </SelectValue>
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="activo">
+                              <Badge className="bg-green-100 text-green-800">activo</Badge>
+                            </SelectItem>
+                            <SelectItem value="inactivo">
+                              <Badge className="bg-gray-100 text-gray-800">inactivo</Badge>
+                            </SelectItem>
+                            <SelectItem value="suspendido">
+                              <Badge className="bg-red-100 text-red-800">suspendido</Badge>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </TableCell>
                       <TableCell>
                         {new Date(peer.fecha_creacion).toLocaleDateString()}
                       </TableCell>
