@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Eye, Star, StarOff, Plus, Network } from 'lucide-react';
+import { Edit, Trash, Eye, Star, StarOff } from 'lucide-react';
 import { Cliente } from '@/lib/supabase';
 import { UserClientOrder } from '@/lib/userPreferences';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -13,7 +13,6 @@ interface ClientCardProps {
   onEdit: (cliente: Cliente) => void;
   onDelete: (id: string) => void;
   onView: (id: string) => void;
-  onCreatePeer?: (id: string) => void;
   userOrder?: UserClientOrder;
   onToggleFavorite?: (clienteId: string) => void;
   tags?: any[];
@@ -23,8 +22,7 @@ export default function ClientCard({
   cliente, 
   onEdit, 
   onDelete, 
-  onView,
-  onCreatePeer,
+  onView, 
   userOrder, 
   onToggleFavorite,
   tags = [] 
@@ -91,59 +89,34 @@ export default function ClientCard({
         </div>
       </CardHeader>
       <CardContent>
-        <div className="space-y-3">
-          <div className="space-y-2">
+        <div className="space-y-2">
+          <p className="text-sm text-gray-600">
+            <strong>IP Cloud:</strong> {cliente.ip_cloud}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Interfaz:</strong> {cliente.interfaz}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Puerto:</strong> {cliente.puerto}
+          </p>
+          {cliente.peerCount !== undefined && (
             <p className="text-sm text-gray-600">
-              <strong>IP Cloud:</strong> {cliente.ip_cloud}
+              <strong>Peers:</strong> {cliente.peerCount}
             </p>
-            <p className="text-sm text-gray-600">
-              <strong>Interfaz:</strong> {cliente.interfaz}
-            </p>
-            <p className="text-sm text-gray-600">
-              <strong>Puerto:</strong> {cliente.puerto}
-            </p>
-            {cliente.peerCount !== undefined && (
-              <p className="text-sm text-gray-600">
-                <strong>Peers:</strong> {cliente.peerCount}
-              </p>
-            )}
-            {tags && tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 mt-2">
-                {tags.map((tag) => (
-                  <Badge 
-                    key={tag.id} 
-                    variant="secondary"
-                    style={{ backgroundColor: tag.user_tags.color + '20', color: tag.user_tags.color }}
-                  >
-                    {tag.user_tags.name}
-                  </Badge>
-                ))}
-              </div>
-            )}
-          </div>
-          
-          {/* Botones de acción principales */}
-          <div className="flex gap-2 pt-2 border-t">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onView(cliente.id)}
-              className="flex-1"
-            >
-              <Network className="h-4 w-4 mr-2" />
-              Ver Peers
-            </Button>
-            {onCreatePeer && (
-              <Button
-                size="sm"
-                onClick={() => onCreatePeer(cliente.id)}
-                className="flex-1 bg-vpn hover:bg-vpn-dark"
-              >
-                <Plus className="h-4 w-4 mr-2" />
-                Crear Peer
-              </Button>
-            )}
-          </div>
+          )}
+          {tags && tags.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-2">
+              {tags.map((tag) => (
+                <Badge 
+                  key={tag.id} 
+                  variant="secondary"
+                  style={{ backgroundColor: tag.user_tags.color + '20', color: tag.user_tags.color }}
+                >
+                  {tag.user_tags.name}
+                </Badge>
+              ))}
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>
