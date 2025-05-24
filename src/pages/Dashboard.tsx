@@ -227,27 +227,20 @@ export default function Dashboard() {
 
     return (
       <div className={gridClass}>
-        {filteredClientes.map((cliente) => (
-          <ClientCard
-            key={cliente.id}
-            cliente={cliente}
-            viewMode={viewMode}
-            isFormSubmitting={isFormSubmitting}
-            isEditDialogOpen={isEditDialogOpen}
-            selectedClienteId={selectedCliente?.id || null}
-            isFavorite={isClientFavorite(cliente.id)}
-            onEdit={setSelectedCliente}
-            onDelete={handleDeleteCliente}
-            onViewPeers={handleViewPeers}
-            onAddPeer={handleAddPeer}
-            onToggleFavorite={handleToggleFavorite}
-            onUpdate={handleUpdateCliente}
-            onEditDialogChange={(open) => {
-              setIsEditDialogOpen(open);
-              if (!open) setSelectedCliente(null);
-            }}
-          />
-        ))}
+        {filteredClientes.map((cliente) => {
+          const clientOrder = clientOrders.find(order => order.cliente_id === cliente.id);
+          return (
+            <ClientCard
+              key={cliente.id}
+              cliente={cliente}
+              userOrder={clientOrder}
+              onEdit={setSelectedCliente}
+              onDelete={handleDeleteCliente}
+              onView={handleViewPeers}
+              onToggleFavorite={handleToggleFavorite}
+            />
+          );
+        })}
       </div>
     );
   };
@@ -367,6 +360,30 @@ export default function Dashboard() {
       ) : (
         renderClientCards()
       )}
+
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-md bg-card border-border/50">
+          <DialogHeader>
+            <DialogTitle>Editar Cliente</DialogTitle>
+            <DialogDescription>
+              Modifica los datos del cliente
+            </DialogDescription>
+          </DialogHeader>
+          {selectedCliente && (
+            <ClienteForm
+              initialData={{
+                nombre: selectedCliente.nombre,
+                ip_cloud: selectedCliente.ip_cloud,
+                public_key: selectedCliente.public_key,
+                interfaz: selectedCliente.interfaz,
+                puerto: selectedCliente.puerto
+              }}
+              onSubmit={handleUpdateCliente}
+              isLoading={isFormSubmitting}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

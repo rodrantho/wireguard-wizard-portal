@@ -1,4 +1,3 @@
-
 import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
@@ -28,6 +27,7 @@ export type VpnPeer = {
   fecha_creacion?: string;
   private_key?: string; // Guardamos temporalmente para la descarga
   public_key?: string; // Guardamos temporalmente para la configuración
+  estado?: string; // Nuevo campo para el estado del peer
 };
 
 export type Usuario = {
