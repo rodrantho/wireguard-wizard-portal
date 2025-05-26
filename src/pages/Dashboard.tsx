@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -148,6 +149,7 @@ export default function Dashboard() {
       setClientOrders(ordersData);
     } catch (error) {
       console.error('Error toggling favorite:', error);
+      toast.error('Error al cambiar favorito');
     }
   };
 
@@ -190,8 +192,10 @@ export default function Dashboard() {
       fetchClientes();
       setIsEditDialogOpen(false);
       setSelectedCliente(null);
+      toast.success("Cliente actualizado con éxito");
     } catch (error) {
       console.error("Error al actualizar cliente:", error);
+      toast.error("Error al actualizar cliente");
     } finally {
       setIsFormSubmitting(false);
     }
@@ -204,6 +208,7 @@ export default function Dashboard() {
       toast.success("Cliente eliminado con éxito");
     } catch (error) {
       console.error("Error al eliminar cliente:", error);
+      toast.error("Error al eliminar cliente");
     }
   };
   
@@ -213,6 +218,11 @@ export default function Dashboard() {
   
   const handleViewPeers = (clienteId: string) => {
     navigate(`/peers/${clienteId}`);
+  };
+
+  const handleEditCliente = (cliente: Cliente) => {
+    setSelectedCliente(cliente);
+    setIsEditDialogOpen(true);
   };
 
   const handleViewModeChange = async (mode: ViewMode) => {
@@ -234,9 +244,10 @@ export default function Dashboard() {
               key={cliente.id}
               cliente={cliente}
               userOrder={clientOrder}
-              onEdit={setSelectedCliente}
+              onEdit={handleEditCliente}
               onDelete={handleDeleteCliente}
               onView={handleViewPeers}
+              onAddPeer={handleAddPeer}
               onToggleFavorite={handleToggleFavorite}
             />
           );

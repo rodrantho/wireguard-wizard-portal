@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Eye, Star, StarOff } from 'lucide-react';
+import { Edit, Trash, Eye, Star, StarOff, Plus } from 'lucide-react';
 import { Cliente } from '@/lib/supabase';
 import { UserClientOrder } from '@/lib/userPreferences';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -13,6 +13,7 @@ interface ClientCardProps {
   onEdit: (cliente: Cliente) => void;
   onDelete: (id: string) => void;
   onView: (id: string) => void;
+  onAddPeer: (id: string) => void;
   userOrder?: UserClientOrder;
   onToggleFavorite?: (clienteId: string) => void;
   tags?: any[];
@@ -22,7 +23,8 @@ export default function ClientCard({
   cliente, 
   onEdit, 
   onDelete, 
-  onView, 
+  onView,
+  onAddPeer,
   userOrder, 
   onToggleFavorite,
   tags = [] 
@@ -117,6 +119,16 @@ export default function ClientCard({
               ))}
             </div>
           )}
+          <div className="pt-2 border-t mt-3">
+            <Button 
+              onClick={() => onAddPeer(cliente.id)}
+              className="w-full bg-vpn hover:bg-vpn-dark"
+              size="sm"
+            >
+              <Plus className="mr-2 h-4 w-4" />
+              Crear Peer
+            </Button>
+          </div>
         </div>
       </CardContent>
     </Card>

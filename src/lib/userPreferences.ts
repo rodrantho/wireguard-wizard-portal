@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -255,13 +254,18 @@ export async function toggleClientFavorite(clienteId: string) {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) throw new Error('Usuario no autenticado');
 
-    // Primero obtener el estado actual
-    const { data: current } = await supabase
+    // Primero obtener el estado actual - usar maybeSingle en lugar de single
+    const { data: current, error: fetchError } = await supabase
       .from('user_client_order')
       .select('is_favorite')
       .eq('user_id', user.id)
       .eq('cliente_id', clienteId)
-      .single();
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching current favorite state:', fetchError);
+      throw fetchError;
+    }
 
     const newFavoriteState = !current?.is_favorite;
 
@@ -272,12 +276,15 @@ export async function toggleClientFavorite(clienteId: string) {
         cliente_id: clienteId,
         is_favorite: newFavoriteState,
         updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'user_id,cliente_id'
       });
 
     if (error) throw error;
     toast.success(newFavoriteState ? 'Cliente marcado como favorito' : 'Cliente removido de favoritos');
     return newFavoriteState;
   } catch (error: any) {
+    console.error('Error toggling favorite:', error);
     toast.error('Error al cambiar favorito: ' + error.message);
     throw error;
   }
