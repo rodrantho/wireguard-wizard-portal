@@ -1,9 +1,9 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Grid3X3, List, LayoutGrid } from 'lucide-react';
+import { Grid3X3, LayoutGrid } from 'lucide-react';
 
-export type ViewMode = 'expanded' | 'grid' | 'list';
+export type ViewMode = 'expanded' | 'grid';
 
 interface ViewModeSelectorProps {
   viewMode: ViewMode;
@@ -28,14 +28,6 @@ export default function ViewModeSelector({ viewMode, onViewModeChange }: ViewMod
         className="h-8 px-3"
       >
         <Grid3X3 className="h-4 w-4" />
-      </Button>
-      <Button
-        variant={viewMode === 'list' ? 'default' : 'ghost'}
-        size="sm"
-        onClick={() => onViewModeChange('list')}
-        className="h-8 px-3"
-      >
-        <List className="h-4 w-4" />
       </Button>
     </div>
   );

@@ -50,11 +50,11 @@ export async function createComment(entityType: 'cliente' | 'peer', entityId: st
   try {
     const { data, error } = await supabase
       .from('comments')
-      .insert([{
+      .insert({
         entity_type: entityType,
         entity_id: entityId,
         content: content
-      }])
+      })
       .select();
 
     if (error) throw error;
@@ -101,11 +101,11 @@ export async function logAccess(action: string, resourceType: string, resourceId
   try {
     await supabase
       .from('access_logs')
-      .insert([{
+      .insert({
         action,
         resource_type: resourceType,
         resource_id: resourceId
-      }]);
+      });
   } catch (error: any) {
     console.error('Error logging access:', error);
   }
@@ -177,12 +177,12 @@ export async function createAlert(alertType: string, title: string, message: str
   try {
     const { error } = await supabase
       .from('system_alerts')
-      .insert([{
+      .insert({
         alert_type: alertType,
         title,
         message,
         severity
-      }]);
+      });
 
     if (error) throw error;
   } catch (error: any) {
