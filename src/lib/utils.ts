@@ -1,6 +1,6 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
+import { x25519 } from '@noble/curves/ed25519'
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
@@ -18,11 +18,8 @@ export async function generateWireguardKeys() {
   // Convert private key to base64
   const privateKey = btoa(String.fromCharCode.apply(null, [...privateKeyBytes]));
   
-  // For the public key, we need to perform Curve25519 scalar multiplication
-  // Since we can't do this properly in the browser without a crypto library,
-  // we'll generate a random key for now (this is a limitation)
-  // In a real implementation, you'd use a proper Curve25519 library
-  const publicKeyBytes = crypto.getRandomValues(new Uint8Array(32));
+  // Generate the correct public key using Curve25519 scalar multiplication
+  const publicKeyBytes = x25519.getPublicKey(privateKeyBytes);
   const publicKey = btoa(String.fromCharCode.apply(null, [...publicKeyBytes]));
   
   console.log('Generated WireGuard keys:', { 
