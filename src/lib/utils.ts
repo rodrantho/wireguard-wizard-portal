@@ -1,4 +1,3 @@
-
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 
@@ -83,7 +82,7 @@ export function createMikrotikCommand(
   clientName: string
 ): string {
   return `/interface wireguard peers
-add allowed-address=${clientIp}/32 interface=${interfaceName} public-key="${publicKey}" comment="${clientName}"
+add allowed-address=${clientIp}/32 interface=${interfaceName} public-key="${publicKey}" comment="${clientName}" responder=yes
 `;
 }
 

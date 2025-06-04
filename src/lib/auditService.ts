@@ -48,12 +48,16 @@ export async function getComments(entityType: 'cliente' | 'peer', entityId: stri
 
 export async function createComment(entityType: 'cliente' | 'peer', entityId: string, content: string) {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) throw new Error('User not authenticated');
+
     const { data, error } = await supabase
       .from('comments')
       .insert({
         entity_type: entityType,
         entity_id: entityId,
-        content: content
+        content: content,
+        user_id: user.id
       })
       .select();
 
@@ -99,12 +103,16 @@ export async function deleteComment(id: string) {
 // Funciones para Access Logs
 export async function logAccess(action: string, resourceType: string, resourceId?: string) {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return; // Skip logging if user not authenticated
+
     await supabase
       .from('access_logs')
       .insert({
         action,
         resource_type: resourceType,
-        resource_id: resourceId
+        resource_id: resourceId,
+        user_id: user.id
       });
   } catch (error: any) {
     console.error('Error logging access:', error);
@@ -175,13 +183,16 @@ export async function markAlertAsRead(id: string) {
 
 export async function createAlert(alertType: string, title: string, message: string, severity: string = 'medium') {
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    
     const { error } = await supabase
       .from('system_alerts')
       .insert({
         alert_type: alertType,
         title,
         message,
-        severity
+        severity,
+        user_id: user?.id || null
       });
 
     if (error) throw error;
