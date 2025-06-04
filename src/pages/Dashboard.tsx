@@ -1,20 +1,24 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { getClientes, Cliente, deleteCliente } from "@/lib/supabase";
+import { logAccess, updateClienteOrder } from "@/lib/auditService";
 import ClienteForm from "@/components/ClienteForm";
+import CommentsSection from "@/components/CommentsSection";
+import ActivityTimeline from "@/components/ActivityTimeline";
+import SystemAlerts from "@/components/SystemAlerts";
+import DraggableClientList from "@/components/DraggableClientList";
 import { ClienteFormData } from "@/lib/types";
 import { createCliente, updateCliente } from "@/lib/supabase";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import { Plus, Network, Heart, Filter, SortAsc, SortDesc, Settings } from "lucide-react";
+import { Plus, Network, Heart, Filter, SortAsc, SortDesc, Settings, Activity, AlertTriangle, MessageSquare } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TagManager from "@/components/TagManager";
 import ViewModeSelector, { ViewMode } from "@/components/ViewModeSelector";
-import ClientCard from "@/components/ClientCard";
 import { 
   getUserPreferences, 
   saveUserPreferences, 
@@ -32,6 +36,8 @@ export default function Dashboard() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [selectedEntityForComments, setSelectedEntityForComments] = useState<{id: string, name: string, type: 'cliente' | 'peer'} | null>(null);
   const [isFormSubmitting, setIsFormSubmitting] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   
@@ -47,6 +53,8 @@ export default function Dashboard() {
 
   useEffect(() => {
     initializeDashboard();
+    // Log acceso al dashboard
+    logAccess('view_dashboard', 'dashboard');
   }, []);
 
   useEffect(() => {
@@ -147,14 +155,48 @@ export default function Dashboard() {
       // Refrescar órdenes de cliente
       const ordersData = await getUserClientOrder();
       setClientOrders(ordersData);
+      
+      // Log del acceso
+      logAccess('toggle_favorite', 'cliente', clienteId);
     } catch (error) {
       console.error('Error toggling favorite:', error);
       toast.error('Error al cambiar favorito');
     }
   };
 
-  const isClientFavorite = (clienteId: string) => {
-    return clientOrders.find(order => order.cliente_id === clienteId)?.is_favorite || false;
+  const handleReorderClientes = async (reorderedClientes: Cliente[]) => {
+    try {
+      // Actualizar el orden local inmediatamente
+      setFilteredClientes(reorderedClientes);
+      
+      // Actualizar el orden en la base de datos
+      const updatePromises = reorderedClientes.map((cliente, index) => 
+        updateClienteOrder(cliente.id, index)
+      );
+      
+      await Promise.all(updatePromises);
+      toast.success('Orden actualizado');
+      
+      // Log del acceso
+      logAccess('reorder_clientes', 'clientes');
+    } catch (error) {
+      console.error('Error reordering clientes:', error);
+      toast.error('Error al actualizar orden');
+      // Revertir el cambio local en caso de error
+      applyFiltersAndSorting();
+    }
+  };
+
+  const handleShowComments = (clienteId: string, clienteName: string) => {
+    setSelectedEntityForComments({
+      id: clienteId,
+      name: clienteName,
+      type: 'cliente'
+    });
+    setIsCommentsOpen(true);
+    
+    // Log del acceso
+    logAccess('view_comments', 'cliente', clienteId);
   };
 
   const fetchClientes = async () => {
@@ -176,6 +218,9 @@ export default function Dashboard() {
       setClientes([...clientes, newCliente]);
       setIsAddDialogOpen(false);
       toast.success("Cliente creado con éxito");
+      
+      // Log del acceso
+      logAccess('create_cliente', 'cliente', newCliente.id);
     } catch (error) {
       console.error("Error al crear cliente:", error);
     } finally {
@@ -193,6 +238,9 @@ export default function Dashboard() {
       setIsEditDialogOpen(false);
       setSelectedCliente(null);
       toast.success("Cliente actualizado con éxito");
+      
+      // Log del acceso
+      logAccess('update_cliente', 'cliente', selectedCliente.id);
     } catch (error) {
       console.error("Error al actualizar cliente:", error);
       toast.error("Error al actualizar cliente");
@@ -206,6 +254,9 @@ export default function Dashboard() {
       await deleteCliente(id);
       setClientes(clientes.filter(c => c.id !== id));
       toast.success("Cliente eliminado con éxito");
+      
+      // Log del acceso
+      logAccess('delete_cliente', 'cliente', id);
     } catch (error) {
       console.error("Error al eliminar cliente:", error);
       toast.error("Error al eliminar cliente");
@@ -213,47 +264,28 @@ export default function Dashboard() {
   };
   
   const handleAddPeer = (clienteId: string) => {
+    // Log del acceso
+    logAccess('navigate_create_peer', 'cliente', clienteId);
     navigate(`/crear-peer/${clienteId}`);
   };
   
   const handleViewPeers = (clienteId: string) => {
+    // Log del acceso
+    logAccess('view_peers', 'cliente', clienteId);
     navigate(`/peers/${clienteId}`);
   };
 
   const handleEditCliente = (cliente: Cliente) => {
     setSelectedCliente(cliente);
     setIsEditDialogOpen(true);
+    
+    // Log del acceso
+    logAccess('edit_cliente', 'cliente', cliente.id);
   };
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode);
     await saveUserPreferences({ view_mode: mode });
-  };
-
-  const renderClientCards = () => {
-    const gridClass = viewMode === 'grid' 
-      ? 'grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4'
-      : 'grid gap-6';
-
-    return (
-      <div className={gridClass}>
-        {filteredClientes.map((cliente) => {
-          const clientOrder = clientOrders.find(order => order.cliente_id === cliente.id);
-          return (
-            <ClientCard
-              key={cliente.id}
-              cliente={cliente}
-              userOrder={clientOrder}
-              onEdit={handleEditCliente}
-              onDelete={handleDeleteCliente}
-              onView={handleViewPeers}
-              onAddPeer={handleAddPeer}
-              onToggleFavorite={handleToggleFavorite}
-            />
-          );
-        })}
-      </div>
-    );
   };
 
   return (
@@ -306,72 +338,118 @@ export default function Dashboard() {
           </Dialog>
         </div>
       </div>
-      
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <div className="flex-1">
-          <Input
-            placeholder="Buscar por nombre o IP..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="border-border/40"
-          />
-        </div>
-        <div className="flex space-x-2">
-          <Select value={sortField} onValueChange={handleSortChange}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Ordenar por" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="nombre">Nombre</SelectItem>
-              <SelectItem value="ip_cloud">IP Pública</SelectItem>
-              <SelectItem value="created_at">Fecha de creación</SelectItem>
-              <SelectItem value="favorite">Favoritos</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => handleSortChange(sortField)}
-          >
-            {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
-          </Button>
-          
-          <Button
-            variant={showOnlyFavorites ? "default" : "outline"}
-            size="sm"
-            onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
-          >
-            <Heart className={`h-4 w-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
-          </Button>
 
-          <ViewModeSelector viewMode={viewMode} onViewModeChange={handleViewModeChange} />
-        </div>
-      </div>
+      <Tabs defaultValue="clientes" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="clientes">Clientes</TabsTrigger>
+          <TabsTrigger value="actividad">
+            <Activity className="mr-2 h-4 w-4" />
+            Actividad
+          </TabsTrigger>
+          <TabsTrigger value="alertas">
+            <AlertTriangle className="mr-2 h-4 w-4" />
+            Alertas
+          </TabsTrigger>
+          <TabsTrigger value="comentarios">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            Comentarios
+          </TabsTrigger>
+        </TabsList>
 
-      {loading ? (
-        <div className="flex justify-center my-12">
-          <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn animate-spin"></div>
-        </div>
-      ) : filteredClientes.length === 0 ? (
-        <Card className="bg-card/50 backdrop-blur-sm border border-border/30">
-          <CardHeader>
-            <CardTitle>No hay clientes</CardTitle>
-            <CardDescription>
-              {searchTerm || showOnlyFavorites ? "No se encontraron resultados para los filtros aplicados." : "Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard."}
-            </CardDescription>
-          </CardHeader>
-          <CardFooter>
-            <Button onClick={() => setIsAddDialogOpen(true)} className="bg-vpn hover:bg-vpn-dark">
-              <Plus className="mr-2 h-4 w-4" />
-              Nuevo Cliente
-            </Button>
-          </CardFooter>
-        </Card>
-      ) : (
-        renderClientCards()
-      )}
+        <TabsContent value="clientes" className="space-y-6">
+          <div className="flex flex-col md:flex-row gap-4 mb-6">
+            <div className="flex-1">
+              <Input
+                placeholder="Buscar por nombre o IP..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="border-border/40"
+              />
+            </div>
+            <div className="flex space-x-2">
+              <Select value={sortField} onValueChange={handleSortChange}>
+                <SelectTrigger className="w-48">
+                  <SelectValue placeholder="Ordenar por" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nombre">Nombre</SelectItem>
+                  <SelectItem value="ip_cloud">IP Pública</SelectItem>
+                  <SelectItem value="created_at">Fecha de creación</SelectItem>
+                  <SelectItem value="favorite">Favoritos</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleSortChange(sortField)}
+              >
+                {sortDirection === 'asc' ? <SortAsc className="h-4 w-4" /> : <SortDesc className="h-4 w-4" />}
+              </Button>
+              
+              <Button
+                variant={showOnlyFavorites ? "default" : "outline"}
+                size="sm"
+                onClick={() => setShowOnlyFavorites(!showOnlyFavorites)}
+              >
+                <Heart className={`h-4 w-4 ${showOnlyFavorites ? 'fill-current' : ''}`} />
+              </Button>
 
+              <ViewModeSelector viewMode={viewMode} onViewModeChange={handleViewModeChange} />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="flex justify-center my-12">
+              <div className="rounded-full h-12 w-12 border-t-2 border-b-2 border-vpn animate-spin"></div>
+            </div>
+          ) : filteredClientes.length === 0 ? (
+            <Card className="bg-card/50 backdrop-blur-sm border border-border/30">
+              <CardHeader>
+                <CardTitle>No hay clientes</CardTitle>
+                <CardDescription>
+                  {searchTerm || showOnlyFavorites ? "No se encontraron resultados para los filtros aplicados." : "Crea un nuevo cliente para comenzar a gestionar configuraciones VPN WireGuard."}
+                </CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="bg-vpn hover:bg-vpn-dark">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Nuevo Cliente
+                </Button>
+              </CardFooter>
+            </Card>
+          ) : (
+            <DraggableClientList
+              clientes={filteredClientes}
+              onEdit={handleEditCliente}
+              onDelete={handleDeleteCliente}
+              onView={handleViewPeers}
+              onAddPeer={handleAddPeer}
+              onShowComments={handleShowComments}
+              onToggleFavorite={handleToggleFavorite}
+              onReorder={handleReorderClientes}
+              clientOrders={clientOrders}
+              viewMode={viewMode}
+            />
+          )}
+        </TabsContent>
+
+        <TabsContent value="actividad">
+          <ActivityTimeline />
+        </TabsContent>
+
+        <TabsContent value="alertas">
+          <SystemAlerts />
+        </TabsContent>
+
+        <TabsContent value="comentarios">
+          <div className="text-center py-8 text-gray-500">
+            Selecciona un cliente para ver sus comentarios usando el botón de comentario en cada tarjeta de cliente.
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Dialog para editar cliente */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
         <DialogContent className="sm:max-w-md bg-card border-border/50">
           <DialogHeader>
@@ -391,6 +469,22 @@ export default function Dashboard() {
               }}
               onSubmit={handleUpdateCliente}
               isLoading={isFormSubmitting}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog para comentarios */}
+      <Dialog open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
+        <DialogContent className="sm:max-w-2xl bg-card border-border/50">
+          <DialogHeader>
+            <DialogTitle>Comentarios</DialogTitle>
+          </DialogHeader>
+          {selectedEntityForComments && (
+            <CommentsSection
+              entityType={selectedEntityForComments.type}
+              entityId={selectedEntityForComments.id}
+              entityName={selectedEntityForComments.name}
             />
           )}
         </DialogContent>

@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Edit, Trash, Eye, Star, StarOff, Plus } from 'lucide-react';
+import { Edit, Trash, Eye, Star, StarOff, Plus, MessageSquare, GripVertical } from 'lucide-react';
 import { Cliente } from '@/lib/supabase';
 import { UserClientOrder } from '@/lib/userPreferences';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
@@ -14,9 +14,12 @@ interface ClientCardProps {
   onDelete: (id: string) => void;
   onView: (id: string) => void;
   onAddPeer: (id: string) => void;
+  onShowComments?: (id: string, name: string) => void;
   userOrder?: UserClientOrder;
   onToggleFavorite?: (clienteId: string) => void;
   tags?: any[];
+  isDragging?: boolean;
+  dragHandleProps?: any;
 }
 
 export default function ClientCard({ 
@@ -25,14 +28,20 @@ export default function ClientCard({
   onDelete, 
   onView,
   onAddPeer,
+  onShowComments,
   userOrder, 
   onToggleFavorite,
-  tags = [] 
+  tags = [],
+  isDragging = false,
+  dragHandleProps = {}
 }: ClientCardProps) {
   return (
-    <Card className="w-full">
+    <Card className={`w-full transition-all ${isDragging ? 'opacity-50 rotate-2 scale-105' : ''}`}>
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
         <div className="flex items-center space-x-2">
+          <div {...dragHandleProps} className="cursor-grab active:cursor-grabbing">
+            <GripVertical className="h-4 w-4 text-gray-400" />
+          </div>
           <CardTitle className="text-lg">{cliente.nombre}</CardTitle>
           {userOrder?.is_favorite && (
             <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
@@ -51,6 +60,16 @@ export default function ClientCard({
               ) : (
                 <Star className="h-4 w-4" />
               )}
+            </Button>
+          )}
+          {onShowComments && (
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => onShowComments(cliente.id, cliente.nombre)}
+              className="h-8 w-8 p-0"
+            >
+              <MessageSquare className="h-4 w-4" />
             </Button>
           )}
           <Button variant="ghost" size="sm" onClick={() => onView(cliente.id)}>

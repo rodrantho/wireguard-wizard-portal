@@ -2,6 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { toast } from 'sonner';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
+import { logAccess } from './auditService';
 
 // Export the supabase client from integrations directly
 export const supabase = supabaseClient;
@@ -13,6 +14,7 @@ export type Cliente = {
   public_key: string;
   interfaz: string;
   puerto: string;  // Nuevo campo puerto
+  display_order?: number; // Nuevo campo para drag & drop
   created_at?: string;
 };
 
@@ -28,6 +30,7 @@ export type VpnPeer = {
   private_key?: string; // Guardamos temporalmente para la descarga
   public_key?: string; // Guardamos temporalmente para la configuración
   estado?: string; // Nuevo campo para el estado del peer
+  display_order?: number; // Nuevo campo para drag & drop
 };
 
 export type Usuario = {
@@ -44,6 +47,8 @@ export async function loginUser(email: string, password: string) {
     });
 
     if (error) throw error;
+    // Log login access
+    await logAccess('login', 'auth');
     return data;
   } catch (error: any) {
     toast.error('Error de inicio de sesión: ' + error.message);
@@ -53,6 +58,8 @@ export async function loginUser(email: string, password: string) {
 
 export async function logoutUser() {
   try {
+    // Log logout access before signing out
+    await logAccess('logout', 'auth');
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
   } catch (error: any) {
@@ -78,9 +85,14 @@ export async function getClientes() {
     const { data, error } = await supabase
       .from('clientes')
       .select('*')
-      .order('nombre');
+      .order('display_order', { ascending: true })
+      .order('nombre', { ascending: true });
 
     if (error) throw error;
+    
+    // Log access
+    await logAccess('view_clientes', 'clientes');
+    
     return data as Cliente[];
   } catch (error: any) {
     toast.error('Error al obtener clientes: ' + error.message);
@@ -97,6 +109,10 @@ export async function getClienteById(id: string) {
       .single();
 
     if (error) throw error;
+    
+    // Log access
+    await logAccess('view_cliente', 'cliente', id);
+    
     return data as Cliente;
   } catch (error: any) {
     toast.error('Error al obtener cliente: ' + error.message);
@@ -113,6 +129,9 @@ export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>)
 
     if (error) throw error;
     toast.success('Cliente creado con éxito');
+    
+    // Log access happens automatically via trigger
+    
     return data[0] as Cliente;
   } catch (error: any) {
     toast.error('Error al crear cliente: ' + error.message);
@@ -129,6 +148,9 @@ export async function updateCliente(id: string, cliente: Partial<Omit<Cliente, '
 
     if (error) throw error;
     toast.success('Cliente actualizado con éxito');
+    
+    // Log access happens automatically via trigger
+    
   } catch (error: any) {
     toast.error('Error al actualizar cliente: ' + error.message);
     throw error;
@@ -144,6 +166,9 @@ export async function deleteCliente(id: string) {
 
     if (error) throw error;
     toast.success('Cliente eliminado con éxito');
+    
+    // Log access happens automatically via trigger
+    
   } catch (error: any) {
     toast.error('Error al eliminar cliente: ' + error.message);
     throw error;
@@ -155,15 +180,21 @@ export async function getPeers(clienteId?: string) {
   try {
     let query = supabase
       .from('vpn_peers')
-      .select('*, clientes(nombre)');
+      .select('*, clientes(nombre)')
+      .order('display_order', { ascending: true })
+      .order('fecha_creacion', { ascending: false });
     
     if (clienteId) {
       query = query.eq('cliente_id', clienteId);
     }
     
-    const { data, error } = await query.order('fecha_creacion', { ascending: false });
+    const { data, error } = await query;
 
     if (error) throw error;
+    
+    // Log access
+    await logAccess('view_peers', clienteId ? 'cliente' : 'peers', clienteId);
+    
     return data as (VpnPeer & { clientes: { nombre: string } })[];
   } catch (error: any) {
     toast.error('Error al obtener peers: ' + error.message);
@@ -180,6 +211,10 @@ export async function getPeerById(id: string) {
       .single();
 
     if (error) throw error;
+    
+    // Log access
+    await logAccess('view_peer', 'peer', id);
+    
     return data as (VpnPeer & { clientes: { nombre: string } });
   } catch (error: any) {
     toast.error('Error al obtener peer: ' + error.message);
@@ -196,6 +231,9 @@ export async function createPeer(peer: Omit<VpnPeer, 'id' | 'fecha_creacion'>) {
 
     if (error) throw error;
     toast.success('Peer creado con éxito');
+    
+    // Log access happens automatically via trigger
+    
     return data[0] as VpnPeer;
   } catch (error: any) {
     toast.error('Error al crear peer: ' + error.message);
@@ -212,6 +250,9 @@ export async function updatePeer(id: string, peer: Partial<Omit<VpnPeer, 'id'>>)
 
     if (error) throw error;
     toast.success('Peer actualizado con éxito');
+    
+    // Log access happens automatically via trigger
+    
   } catch (error: any) {
     toast.error('Error al actualizar peer: ' + error.message);
     throw error;
@@ -227,6 +268,9 @@ export async function deletePeer(id: string) {
 
     if (error) throw error;
     toast.success('Peer eliminado con éxito');
+    
+    // Log access happens automatically via trigger
+    
   } catch (error: any) {
     toast.error('Error al eliminar peer: ' + error.message);
     throw error;

@@ -9,6 +9,111 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      access_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      activity_feed: {
+        Row: {
+          action_type: string
+          created_at: string
+          description: string
+          entity_id: string | null
+          entity_type: string | null
+          id: string
+          metadata: Json | null
+          user_id: string
+        }
+        Insert: {
+          action_type: string
+          created_at?: string
+          description: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id: string
+        }
+        Update: {
+          action_type?: string
+          created_at?: string
+          description?: string
+          entity_id?: string | null
+          entity_type?: string | null
+          id?: string
+          metadata?: Json | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: unknown | null
+          new_values: Json | null
+          old_values: Json | null
+          record_id: string
+          table_name: string
+          user_agent: string | null
+          user_id: string
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id: string
+          table_name: string
+          user_agent?: string | null
+          user_id: string
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: unknown | null
+          new_values?: Json | null
+          old_values?: Json | null
+          record_id?: string
+          table_name?: string
+          user_agent?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       client_user_tags: {
         Row: {
           cliente_id: string
@@ -54,6 +159,7 @@ export type Database = {
       clientes: {
         Row: {
           created_at: string
+          display_order: number | null
           id: string
           interfaz: string
           ip_cloud: string
@@ -63,6 +169,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          display_order?: number | null
           id?: string
           interfaz: string
           ip_cloud: string
@@ -72,12 +179,82 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          display_order?: number | null
           id?: string
           interfaz?: string
           ip_cloud?: string
           nombre?: string
           public_key?: string
           puerto?: string
+        }
+        Relationships: []
+      }
+      comments: {
+        Row: {
+          content: string
+          created_at: string
+          entity_id: string
+          entity_type: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          content: string
+          created_at?: string
+          entity_id: string
+          entity_type: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          content?: string
+          created_at?: string
+          entity_id?: string
+          entity_type?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      system_alerts: {
+        Row: {
+          alert_type: string
+          auto_resolved: boolean
+          created_at: string
+          id: string
+          is_read: boolean
+          message: string
+          resolved_at: string | null
+          severity: string
+          title: string
+          user_id: string | null
+        }
+        Insert: {
+          alert_type: string
+          auto_resolved?: boolean
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message: string
+          resolved_at?: string | null
+          severity?: string
+          title: string
+          user_id?: string | null
+        }
+        Update: {
+          alert_type?: string
+          auto_resolved?: boolean
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          message?: string
+          resolved_at?: string | null
+          severity?: string
+          title?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -187,6 +364,7 @@ export type Database = {
           cliente_id: string
           comando_mikrotik: string
           config_texto: string
+          display_order: number | null
           estado: string | null
           fecha_creacion: string
           id: string
@@ -200,6 +378,7 @@ export type Database = {
           cliente_id: string
           comando_mikrotik: string
           config_texto: string
+          display_order?: number | null
           estado?: string | null
           fecha_creacion?: string
           id?: string
@@ -213,6 +392,7 @@ export type Database = {
           cliente_id?: string
           comando_mikrotik?: string
           config_texto?: string
+          display_order?: number | null
           estado?: string | null
           fecha_creacion?: string
           id?: string
