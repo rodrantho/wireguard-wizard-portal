@@ -365,6 +365,7 @@ export type Database = {
           comando_mikrotik: string
           config_texto: string
           display_order: number | null
+          download_token: string | null
           estado: string | null
           fecha_creacion: string
           id: string
@@ -379,6 +380,7 @@ export type Database = {
           comando_mikrotik: string
           config_texto: string
           display_order?: number | null
+          download_token?: string | null
           estado?: string | null
           fecha_creacion?: string
           id?: string
@@ -393,6 +395,7 @@ export type Database = {
           comando_mikrotik?: string
           config_texto?: string
           display_order?: number | null
+          download_token?: string | null
           estado?: string | null
           fecha_creacion?: string
           id?: string

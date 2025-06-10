@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import { x25519 } from '@noble/curves/ed25519'
@@ -8,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export async function generateWireguardKeys() {
   // Generate a proper 32-byte private key for WireGuard (Curve25519)
-  const privateKeyBytes = crypto.getRandomValues(new Uint8Array(32));
+  const privateKeyBytes = globalThis.crypto.getRandomValues(new Uint8Array(32));
   
   // Clamp the private key according to Curve25519 requirements
   privateKeyBytes[0] &= 248;

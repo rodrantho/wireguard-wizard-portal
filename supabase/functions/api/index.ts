@@ -23,9 +23,13 @@ serve(async (req) => {
     const path = url.pathname.replace('/api', '')
     const method = req.method
 
+    console.log(`API call: ${method} ${path}`)
+
     // Public download endpoint - no authentication required
     if (path.startsWith('/download/') && method === 'GET') {
       const downloadToken = path.split('/')[2]
+      
+      console.log(`Download request for token: ${downloadToken}`)
       
       const { data: peer, error } = await supabase
         .from('vpn_peers')
@@ -34,11 +38,14 @@ serve(async (req) => {
         .single()
 
       if (error || !peer) {
+        console.error('Peer not found:', error)
         return new Response(
           'Archivo no encontrado',
           { status: 404, headers: corsHeaders }
         )
       }
+
+      console.log(`Serving download for peer: ${peer.nombre_peer}`)
 
       // Log the download access
       await supabase.from('access_logs').insert({

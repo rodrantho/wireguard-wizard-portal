@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import { supabase as supabaseClient } from '@/integrations/supabase/client';
 import type { Database } from '@/integrations/supabase/types';
 import { logAccess } from './auditService';
-import { crypto } from 'crypto';
 
 // Export the supabase client from integrations directly
 export const supabase = supabaseClient;
@@ -32,6 +31,7 @@ export type VpnPeer = {
   public_key?: string; // Guardamos temporalmente para la configuración
   estado?: string; // Nuevo campo para el estado del peer
   display_order?: number; // Nuevo campo para drag & drop
+  download_token?: string; // New field for public download token
 };
 
 export type Usuario = {
@@ -226,7 +226,7 @@ export async function getPeerById(id: string) {
 export async function createPeer(peer: Omit<VpnPeer, 'id' | 'fecha_creacion'>) {
   try {
     // Generate a unique download token for the peer
-    const downloadToken = crypto.randomUUID();
+    const downloadToken = globalThis.crypto.randomUUID();
     
     const { data, error } = await supabase
       .from('vpn_peers')
