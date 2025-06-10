@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
@@ -367,6 +366,7 @@ export default function Peers() {
               configText={selectedPeer.config_texto}
               clientName={selectedPeer.nombre_peer}
               commandText={selectedPeer.comando_mikrotik}
+              downloadToken={selectedPeer.download_token}
             />
           )}
         </DialogContent>

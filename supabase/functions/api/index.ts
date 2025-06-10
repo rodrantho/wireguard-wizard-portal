@@ -23,7 +23,44 @@ serve(async (req) => {
     const path = url.pathname.replace('/api', '')
     const method = req.method
 
-    // Authentication check
+    // Public download endpoint - no authentication required
+    if (path.startsWith('/download/') && method === 'GET') {
+      const downloadToken = path.split('/')[2]
+      
+      const { data: peer, error } = await supabase
+        .from('vpn_peers')
+        .select('config_texto, nombre_peer')
+        .eq('download_token', downloadToken)
+        .single()
+
+      if (error || !peer) {
+        return new Response(
+          'Archivo no encontrado',
+          { status: 404, headers: corsHeaders }
+        )
+      }
+
+      // Log the download access
+      await supabase.from('access_logs').insert({
+        action: 'download_config',
+        resource_type: 'peer',
+        resource_id: downloadToken,
+        ip_address: req.headers.get('x-forwarded-for') || 'unknown',
+        user_agent: req.headers.get('user-agent') || 'unknown'
+      })
+
+      const fileName = `${peer.nombre_peer.replace(/\s+/g, "_")}.conf`
+      
+      return new Response(peer.config_texto, {
+        headers: {
+          ...corsHeaders,
+          'Content-Type': 'application/octet-stream',
+          'Content-Disposition': `attachment; filename="${fileName}"`
+        }
+      })
+    }
+
+    // Authentication check for other endpoints
     const authHeader = req.headers.get('Authorization')
     if (!authHeader) {
       return new Response(

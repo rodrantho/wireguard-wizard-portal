@@ -11,6 +11,7 @@ type QRCodeDisplayProps = {
   configText: string;
   clientName: string;
   commandText: string;
+  downloadToken?: string; // New prop for download token
 };
 
 export default function QRCodeDisplay({
@@ -18,6 +19,7 @@ export default function QRCodeDisplay({
   configText,
   clientName,
   commandText,
+  downloadToken,
 }: QRCodeDisplayProps) {
   const handleCopyConfig = () => {
     navigator.clipboard.writeText(configText);
@@ -31,6 +33,14 @@ export default function QRCodeDisplay({
 
   const handleDownloadConfig = () => {
     convertToDownloadableLink(configText, `${clientName.replace(/\s+/g, "_")}.conf`);
+  };
+
+  const handleCopyDownloadLink = () => {
+    if (downloadToken) {
+      const downloadLink = `${window.location.origin}/api/download/${downloadToken}`;
+      navigator.clipboard.writeText(downloadLink);
+      toast.success("Link de descarga copiado al portapapeles");
+    }
   };
 
   return (
@@ -77,7 +87,7 @@ export default function QRCodeDisplay({
               <div className="bg-black/70 text-green-400 p-4 rounded-md h-40 overflow-y-auto font-mono text-sm border border-blue-500/30 shadow-inner-glow">
                 <pre className="whitespace-pre-wrap break-all">{configText}</pre>
               </div>
-              <div className="mt-3 flex space-x-3">
+              <div className="mt-3 flex space-x-3 flex-wrap gap-2">
                 <Button
                   size="sm"
                   variant="outline"
@@ -96,7 +106,23 @@ export default function QRCodeDisplay({
                   <Download className="mr-1 h-4 w-4" />
                   Descargar .conf
                 </Button>
+                {downloadToken && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleCopyDownloadLink}
+                    className="flex items-center border-green-500/50 text-green-400 hover:bg-green-950/30"
+                  >
+                    <Copy className="mr-1 h-4 w-4" />
+                    Copiar Link Público
+                  </Button>
+                )}
               </div>
+              {downloadToken && (
+                <p className="text-xs text-green-400/70 mt-2">
+                  Link público: Comparte este enlace para descargar sin login
+                </p>
+              )}
             </div>
 
             <div>

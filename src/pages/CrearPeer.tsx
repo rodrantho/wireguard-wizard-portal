@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { getClienteById, Cliente, getClientes, createPeer } from "@/lib/supabase";
@@ -157,6 +156,7 @@ export default function CrearPeer() {
                   configText={peer.config_texto}
                   clientName={peer.nombre_peer}
                   commandText={peer.comando_mikrotik}
+                  downloadToken={peer.download_token}
                 />
               </CardContent>
             </Card>

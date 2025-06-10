@@ -189,3 +189,9 @@ export function validatePeerInput(peer: {
     errors
   };
 }
+
+export function generateDownloadLink(downloadToken: string, peerName: string): string {
+  const baseUrl = window.location.origin;
+  const apiUrl = `${baseUrl}/api/download/${downloadToken}`;
+  return apiUrl;
+}
