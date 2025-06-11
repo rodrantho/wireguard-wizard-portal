@@ -1,17 +1,22 @@
 
-import React from "react";
+import React, { useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Download, Copy, QrCode, Terminal } from "lucide-react";
+import { Download, Copy, QrCode, Terminal, Settings } from "lucide-react";
 import { convertToDownloadableLink } from "@/lib/utils";
 import { toast } from "sonner";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import DownloadLinkManager from "./DownloadLinkManager";
+import type { VpnPeer } from "@/lib/supabase";
 
 type QRCodeDisplayProps = {
   qrImageUrl: string;
   configText: string;
   clientName: string;
   commandText: string;
-  downloadToken?: string; // New prop for download token
+  downloadToken?: string;
+  peer?: VpnPeer;
+  onPeerUpdate?: (peer: VpnPeer) => void;
 };
 
 export default function QRCodeDisplay({
@@ -20,7 +25,11 @@ export default function QRCodeDisplay({
   clientName,
   commandText,
   downloadToken,
+  peer,
+  onPeerUpdate,
 }: QRCodeDisplayProps) {
+  const [showDownloadManager, setShowDownloadManager] = useState(false);
+
   const handleCopyConfig = () => {
     navigator.clipboard.writeText(configText);
     toast.success("Configuración copiada al portapapeles");
@@ -116,6 +125,32 @@ export default function QRCodeDisplay({
                     <Copy className="mr-1 h-4 w-4" />
                     Copiar Link Público
                   </Button>
+                )}
+                {peer && onPeerUpdate && (
+                  <Dialog open={showDownloadManager} onOpenChange={setShowDownloadManager}>
+                    <DialogTrigger asChild>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="flex items-center border-yellow-500/50 text-yellow-400 hover:bg-yellow-950/30"
+                      >
+                        <Settings className="mr-1 h-4 w-4" />
+                        Gestionar Link
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-lg">
+                      <DialogHeader>
+                        <DialogTitle>Gestión de Enlaces de Descarga</DialogTitle>
+                      </DialogHeader>
+                      <DownloadLinkManager
+                        peer={peer}
+                        onUpdate={(updatedPeer) => {
+                          onPeerUpdate(updatedPeer);
+                          setShowDownloadManager(false);
+                        }}
+                      />
+                    </DialogContent>
+                  </Dialog>
                 )}
               </div>
               {downloadToken && (

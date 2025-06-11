@@ -77,7 +77,13 @@ export default function Peers() {
     setSelectedPeer(peer);
     setIsViewDialogOpen(true);
   };
-  
+
+  const handlePeerUpdate = (updatedPeer: VpnPeer) => {
+    setPeers(peers.map(p => p.id === updatedPeer.id ? updatedPeer : p));
+    setFilteredPeers(filteredPeers.map(p => p.id === updatedPeer.id ? updatedPeer : p));
+    setSelectedPeer(updatedPeer);
+  };
+
   const handleDeletePeer = async (id: string) => {
     try {
       await deletePeer(id);
@@ -354,7 +360,7 @@ export default function Peers() {
       )}
       
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
-        <DialogContent className="sm:max-w-3xl">
+        <DialogContent className="sm:max-w-4xl">
           <DialogHeader>
             <DialogTitle>
               Detalles del Peer: {selectedPeer?.nombre_peer}
@@ -367,6 +373,8 @@ export default function Peers() {
               clientName={selectedPeer.nombre_peer}
               commandText={selectedPeer.comando_mikrotik}
               downloadToken={selectedPeer.download_token}
+              peer={selectedPeer}
+              onPeerUpdate={handlePeerUpdate}
             />
           )}
         </DialogContent>

@@ -32,6 +32,10 @@ export type VpnPeer = {
   estado?: string; // Nuevo campo para el estado del peer
   display_order?: number; // Nuevo campo para drag & drop
   download_token?: string; // New field for public download token
+  download_count?: number; // Number of times downloaded
+  download_limit?: number; // Maximum downloads allowed
+  download_expires_at?: string; // Expiration date for download
+  is_download_active?: boolean; // Whether download is active
 };
 
 export type Usuario = {
@@ -233,7 +237,11 @@ export async function createPeer(peer: Omit<VpnPeer, 'id' | 'fecha_creacion'>) {
       .insert([{ 
         ...peer, 
         fecha_creacion: new Date().toISOString(),
-        download_token: downloadToken 
+        download_token: downloadToken,
+        download_count: 0,
+        download_limit: 1,
+        download_expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        is_download_active: true
       }])
       .select();
 

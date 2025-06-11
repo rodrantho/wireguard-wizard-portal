@@ -365,11 +365,15 @@ export type Database = {
           comando_mikrotik: string
           config_texto: string
           display_order: number | null
+          download_count: number | null
+          download_expires_at: string | null
+          download_limit: number | null
           download_token: string | null
           estado: string | null
           fecha_creacion: string
           id: string
           ip_asignada: string
+          is_download_active: boolean | null
           nombre_peer: string
           private_key: string | null
           public_key: string | null
@@ -380,11 +384,15 @@ export type Database = {
           comando_mikrotik: string
           config_texto: string
           display_order?: number | null
+          download_count?: number | null
+          download_expires_at?: string | null
+          download_limit?: number | null
           download_token?: string | null
           estado?: string | null
           fecha_creacion?: string
           id?: string
           ip_asignada: string
+          is_download_active?: boolean | null
           nombre_peer: string
           private_key?: string | null
           public_key?: string | null
@@ -395,11 +403,15 @@ export type Database = {
           comando_mikrotik?: string
           config_texto?: string
           display_order?: number | null
+          download_count?: number | null
+          download_expires_at?: string | null
+          download_limit?: number | null
           download_token?: string | null
           estado?: string | null
           fecha_creacion?: string
           id?: string
           ip_asignada?: string
+          is_download_active?: boolean | null
           nombre_peer?: string
           private_key?: string | null
           public_key?: string | null
