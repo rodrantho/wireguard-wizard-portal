@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-import { getCurrentUser } from "@/lib/supabase";
+import { getCurrentUser } from "@/lib/database";
 
 type AuthCheckProps = {
   children: React.ReactNode;
@@ -14,9 +14,15 @@ export default function AuthCheck({ children }: AuthCheckProps) {
 
   useEffect(() => {
     async function checkAuth() {
-      const user = await getCurrentUser();
-      setIsAuthenticated(!!user);
-      setLoading(false);
+      try {
+        const user = await getCurrentUser();
+        setIsAuthenticated(!!user);
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        setIsAuthenticated(false);
+      } finally {
+        setLoading(false);
+      }
     }
     
     checkAuth();

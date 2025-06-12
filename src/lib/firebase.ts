@@ -3,13 +3,36 @@ import { initializeApp } from 'firebase/app';
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged, User } from 'firebase/auth';
 import { getFirestore, collection, doc, getDocs, getDoc, addDoc, updateDoc, deleteDoc, query, orderBy, where, Timestamp } from 'firebase/firestore';
 import { toast } from 'sonner';
-import { DATABASE_CONFIG } from './config';
+import { DATABASE_CONFIG, isFirebaseConfigured } from './config';
 import type { Cliente, VpnPeer, Usuario } from './supabase';
 
-// Initialize Firebase
-const app = initializeApp(DATABASE_CONFIG.firebase);
-export const auth = getAuth(app);
-export const db = getFirestore(app);
+// Only initialize Firebase if properly configured
+let app: any = null;
+let auth: any = null;
+let db: any = null;
+
+if (isFirebaseConfigured()) {
+  try {
+    app = initializeApp(DATABASE_CONFIG.firebase);
+    auth = getAuth(app);
+    db = getFirestore(app);
+    console.log('Firebase initialized successfully');
+  } catch (error) {
+    console.error('Failed to initialize Firebase:', error);
+    toast.error('Error al configurar Firebase');
+  }
+} else {
+  console.warn('Firebase not configured - missing required environment variables');
+}
+
+export { auth, db };
+
+// Helper function to check if Firebase is available
+const checkFirebaseAvailable = () => {
+  if (!auth || !db) {
+    throw new Error('Firebase no está configurado correctamente. Verifique las variables de entorno.');
+  }
+};
 
 // Helper function to convert Firestore timestamp to ISO string
 const timestampToISOString = (timestamp: any): string => {
@@ -54,6 +77,7 @@ const docToPeer = (doc: any): VpnPeer => ({
 
 // Autenticación
 export async function loginUser(email: string, password: string) {
+  checkFirebaseAvailable();
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     return { data: { user: userCredential.user }, error: null };
@@ -64,6 +88,7 @@ export async function loginUser(email: string, password: string) {
 }
 
 export async function logoutUser() {
+  checkFirebaseAvailable();
   try {
     await signOut(auth);
   } catch (error: any) {
@@ -73,11 +98,13 @@ export async function logoutUser() {
 }
 
 export async function getCurrentUser(): Promise<User | null> {
+  checkFirebaseAvailable();
   return auth.currentUser;
 }
 
 // Funciones para clientes
 export async function getClientes(): Promise<Cliente[]> {
+  checkFirebaseAvailable();
   try {
     const q = query(collection(db, 'clientes'), orderBy('display_order'), orderBy('nombre'));
     const querySnapshot = await getDocs(q);
@@ -89,6 +116,7 @@ export async function getClientes(): Promise<Cliente[]> {
 }
 
 export async function getClienteById(id: string): Promise<Cliente> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'clientes', id);
     const docSnap = await getDoc(docRef);
@@ -105,6 +133,7 @@ export async function getClienteById(id: string): Promise<Cliente> {
 }
 
 export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>): Promise<Cliente> {
+  checkFirebaseAvailable();
   try {
     const docRef = await addDoc(collection(db, 'clientes'), {
       ...cliente,
@@ -122,6 +151,7 @@ export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>)
 }
 
 export async function updateCliente(id: string, cliente: Partial<Omit<Cliente, 'id'>>): Promise<void> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'clientes', id);
     await updateDoc(docRef, cliente);
@@ -133,6 +163,7 @@ export async function updateCliente(id: string, cliente: Partial<Omit<Cliente, '
 }
 
 export async function deleteCliente(id: string): Promise<void> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'clientes', id);
     await deleteDoc(docRef);
@@ -145,6 +176,7 @@ export async function deleteCliente(id: string): Promise<void> {
 
 // Funciones para VPN peers
 export async function getPeers(clienteId?: string): Promise<(VpnPeer & { clientes: { nombre: string } })[]> {
+  checkFirebaseAvailable();
   try {
     let q = query(collection(db, 'vpn_peers'), orderBy('display_order'), orderBy('fecha_creacion', 'desc'));
     
@@ -176,6 +208,7 @@ export async function getPeers(clienteId?: string): Promise<(VpnPeer & { cliente
 }
 
 export async function getPeerById(id: string): Promise<VpnPeer & { clientes: { nombre: string } }> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'vpn_peers', id);
     const docSnap = await getDoc(docRef);
@@ -201,6 +234,7 @@ export async function getPeerById(id: string): Promise<VpnPeer & { clientes: { n
 }
 
 export async function createPeer(peer: Omit<VpnPeer, 'id' | 'fecha_creacion'>): Promise<VpnPeer> {
+  checkFirebaseAvailable();
   try {
     const downloadToken = globalThis.crypto.randomUUID();
     
@@ -225,6 +259,7 @@ export async function createPeer(peer: Omit<VpnPeer, 'id' | 'fecha_creacion'>): 
 }
 
 export async function updatePeer(id: string, peer: Partial<Omit<VpnPeer, 'id'>>): Promise<void> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'vpn_peers', id);
     await updateDoc(docRef, peer);
@@ -236,6 +271,7 @@ export async function updatePeer(id: string, peer: Partial<Omit<VpnPeer, 'id'>>)
 }
 
 export async function deletePeer(id: string): Promise<void> {
+  checkFirebaseAvailable();
   try {
     const docRef = doc(db, 'vpn_peers', id);
     await deleteDoc(docRef);

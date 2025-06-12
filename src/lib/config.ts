@@ -17,4 +17,11 @@ export const DATABASE_CONFIG = {
   }
 };
 
+// Validar si Firebase está configurado correctamente
+export const isFirebaseConfigured = () => {
+  const config = DATABASE_CONFIG.firebase;
+  return !!(config.apiKey && config.authDomain && config.projectId);
+};
+
 console.log('Database provider:', DATABASE_CONFIG.provider);
+console.log('Firebase configured:', isFirebaseConfigured());
