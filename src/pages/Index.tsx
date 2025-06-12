@@ -1,24 +1,22 @@
 
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { getCurrentUser } from "@/lib/supabase";
+import { useAuth } from "@/hooks/useAuth";
 import { Network } from "lucide-react";
 
 const Index = () => {
   const navigate = useNavigate();
+  const { user, loading } = useAuth();
   
   useEffect(() => {
-    const checkAuth = async () => {
-      const user = await getCurrentUser();
+    if (!loading) {
       if (user) {
         navigate("/dashboard");
       } else {
         navigate("/login");
       }
-    };
-    
-    checkAuth();
-  }, [navigate]);
+    }
+  }, [user, loading, navigate]);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-background bg-grid-pattern bg-[size:50px_50px]">
