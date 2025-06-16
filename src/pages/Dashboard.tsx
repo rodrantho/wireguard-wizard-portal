@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { getClientes, Cliente, deleteCliente } from "@/lib/supabase";
+import { getClientes, Cliente, deleteCliente } from "@/lib/database";
 import { logAccess, updateClienteOrder } from "@/lib/auditService";
 import ClienteForm from "@/components/ClienteForm";
 import CommentsSection from "@/components/CommentsSection";
@@ -10,7 +10,7 @@ import ActivityTimeline from "@/components/ActivityTimeline";
 import SystemAlerts from "@/components/SystemAlerts";
 import DraggableClientList from "@/components/DraggableClientList";
 import { ClienteFormData } from "@/lib/types";
-import { createCliente, updateCliente } from "@/lib/supabase";
+import { createCliente, updateCliente } from "@/lib/database";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { Plus, Network, Heart, Filter, SortAsc, SortDesc, Settings, Activity, AlertTriangle, MessageSquare } from "lucide-react";
@@ -64,26 +64,34 @@ export default function Dashboard() {
   const initializeDashboard = async () => {
     setLoading(true);
     try {
-      const [clientesData, preferencesData, ordersData] = await Promise.all([
-        getClientes(),
-        getUserPreferences(),
-        getUserClientOrder()
-      ]);
-      
+      const clientesData = await getClientes();
+      console.log('Clientes loaded:', clientesData);
       setClientes(clientesData);
-      setUserPreferences(preferencesData);
-      setClientOrders(ordersData);
       
-      // Aplicar preferencias guardadas
-      if (preferencesData) {
-        setSortField(preferencesData.default_sort_field);
-        setSortDirection(preferencesData.default_sort_direction as 'asc' | 'desc');
-        if (preferencesData.view_mode) {
-          setViewMode(preferencesData.view_mode as ViewMode);
+      // Solo cargar preferencias si están disponibles (esto depende de Supabase)
+      try {
+        const [preferencesData, ordersData] = await Promise.all([
+          getUserPreferences(),
+          getUserClientOrder()
+        ]);
+        
+        setUserPreferences(preferencesData);
+        setClientOrders(ordersData);
+        
+        // Aplicar preferencias guardadas
+        if (preferencesData) {
+          setSortField(preferencesData.default_sort_field);
+          setSortDirection(preferencesData.default_sort_direction as 'asc' | 'desc');
+          if (preferencesData.view_mode) {
+            setViewMode(preferencesData.view_mode as ViewMode);
+          }
         }
+      } catch (error) {
+        console.log('User preferences not available (using Firebase)');
       }
     } catch (error) {
       console.error("Error al cargar datos del dashboard:", error);
+      toast.error("Error al cargar clientes");
     } finally {
       setLoading(false);
     }
@@ -142,11 +150,15 @@ export default function Dashboard() {
     setSortField(field);
     setSortDirection(newDirection);
     
-    // Guardar preferencias
-    await saveUserPreferences({
-      default_sort_field: field,
-      default_sort_direction: newDirection
-    });
+    // Guardar preferencias si están disponibles
+    try {
+      await saveUserPreferences({
+        default_sort_field: field,
+        default_sort_direction: newDirection
+      });
+    } catch (error) {
+      console.log('Cannot save preferences (using Firebase)');
+    }
   };
 
   const handleToggleFavorite = async (clienteId: string) => {
@@ -169,16 +181,20 @@ export default function Dashboard() {
       // Actualizar el orden local inmediatamente
       setFilteredClientes(reorderedClientes);
       
-      // Actualizar el orden en la base de datos
-      const updatePromises = reorderedClientes.map((cliente, index) => 
-        updateClienteOrder(cliente.id, index)
-      );
-      
-      await Promise.all(updatePromises);
-      toast.success('Orden actualizado');
-      
-      // Log del acceso
-      logAccess('reorder_clientes', 'clientes');
+      // Actualizar el orden en la base de datos si está disponible
+      try {
+        const updatePromises = reorderedClientes.map((cliente, index) => 
+          updateClienteOrder(cliente.id, index)
+        );
+        
+        await Promise.all(updatePromises);
+        toast.success('Orden actualizado');
+        
+        // Log del acceso
+        logAccess('reorder_clientes', 'clientes');
+      } catch (error) {
+        console.log('Cannot update order (using Firebase)');
+      }
     } catch (error) {
       console.error('Error reordering clientes:', error);
       toast.error('Error al actualizar orden');
@@ -214,8 +230,12 @@ export default function Dashboard() {
   const handleCreateCliente = async (data: ClienteFormData) => {
     setIsFormSubmitting(true);
     try {
+      console.log('Creating cliente with data:', data);
       const newCliente = await createCliente(data);
-      setClientes([...clientes, newCliente]);
+      console.log('Cliente created:', newCliente);
+      
+      // Refrescar la lista
+      await fetchClientes();
       setIsAddDialogOpen(false);
       toast.success("Cliente creado con éxito");
       
@@ -223,6 +243,7 @@ export default function Dashboard() {
       logAccess('create_cliente', 'cliente', newCliente.id);
     } catch (error) {
       console.error("Error al crear cliente:", error);
+      toast.error("Error al crear cliente: " + (error as Error).message);
     } finally {
       setIsFormSubmitting(false);
     }
@@ -285,7 +306,11 @@ export default function Dashboard() {
 
   const handleViewModeChange = async (mode: ViewMode) => {
     setViewMode(mode);
-    await saveUserPreferences({ view_mode: mode });
+    try {
+      await saveUserPreferences({ view_mode: mode });
+    } catch (error) {
+      console.log('Cannot save view mode preference (using Firebase)');
+    }
   };
 
   return (

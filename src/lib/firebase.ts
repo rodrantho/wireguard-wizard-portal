@@ -261,7 +261,7 @@ export async function updatePeer(id: string, peer: Partial<Omit<VpnPeer, 'id'>>)
     
     // Convert date strings to Timestamps if present
     const updateData = { ...peer };
-    if (updateData.download_expires_at) {
+    if (updateData.download_expires_at && typeof updateData.download_expires_at === 'string') {
       updateData.download_expires_at = Timestamp.fromDate(new Date(updateData.download_expires_at));
     }
     
