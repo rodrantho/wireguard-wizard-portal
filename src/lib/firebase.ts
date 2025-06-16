@@ -89,6 +89,7 @@ export async function getClientes(): Promise<Cliente[]> {
 
 export async function getClienteById(id: string): Promise<Cliente> {
   try {
+    console.log('Fetching cliente by ID:', id);
     const clienteRef = doc(db, 'clientes', id);
     const clienteSnap = await getDoc(clienteRef);
     
@@ -102,6 +103,7 @@ export async function getClienteById(id: string): Promise<Cliente> {
       created_at: timestampToIso(clienteSnap.data()?.created_at)
     } as Cliente;
   } catch (error: any) {
+    console.error('Error al obtener cliente:', error);
     toast.error('Error al obtener cliente: ' + error.message);
     throw error;
   }
