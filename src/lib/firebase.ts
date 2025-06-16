@@ -60,17 +60,28 @@ const timestampToIso = (timestamp: any) => {
 export async function getClientes(): Promise<Cliente[]> {
   try {
     const clientesRef = collection(db, 'clientes');
-    const q = query(clientesRef, orderBy('display_order', 'asc'), orderBy('nombre', 'asc'));
-    const querySnapshot = await getDocs(q);
+    // Simplificamos la consulta para evitar índices complejos
+    const querySnapshot = await getDocs(clientesRef);
     
-    const clientes = querySnapshot.docs.map(doc => ({
+    let clientes = querySnapshot.docs.map(doc => ({
       id: doc.id,
       ...doc.data(),
       created_at: timestampToIso(doc.data().created_at)
     })) as Cliente[];
     
+    // Ordenamos en memoria para evitar índices
+    clientes = clientes.sort((a, b) => {
+      const aOrder = a.display_order || 0;
+      const bOrder = b.display_order || 0;
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      return a.nombre.localeCompare(b.nombre);
+    });
+    
     return clientes;
   } catch (error: any) {
+    console.error('Error al obtener clientes:', error);
     toast.error('Error al obtener clientes: ' + error.message);
     return [];
   }
@@ -98,6 +109,8 @@ export async function getClienteById(id: string): Promise<Cliente> {
 
 export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>): Promise<Cliente> {
   try {
+    console.log('Creating cliente in Firebase:', cliente);
+    
     const clienteData = {
       ...cliente,
       created_at: Timestamp.now(),
@@ -105,6 +118,8 @@ export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>)
     };
     
     const docRef = await addDoc(collection(db, 'clientes'), clienteData);
+    console.log('Cliente created with ID:', docRef.id);
+    
     toast.success('Cliente creado con éxito');
     
     return {
@@ -113,6 +128,7 @@ export async function createCliente(cliente: Omit<Cliente, 'id' | 'created_at'>)
       created_at: new Date().toISOString()
     };
   } catch (error: any) {
+    console.error('Error creating cliente:', error);
     toast.error('Error al crear cliente: ' + error.message);
     throw error;
   }
@@ -144,13 +160,17 @@ export async function deleteCliente(id: string): Promise<void> {
 export async function getPeers(clienteId?: string): Promise<(VpnPeer & { clientes: { nombre: string } })[]> {
   try {
     const peersRef = collection(db, 'vpn_peers');
-    let q = query(peersRef, orderBy('display_order', 'asc'), orderBy('fecha_creacion', 'desc'));
+    let querySnapshot;
     
     if (clienteId) {
-      q = query(peersRef, where('cliente_id', '==', clienteId), orderBy('display_order', 'asc'));
+      // Consulta simple con filtro
+      const q = query(peersRef, where('cliente_id', '==', clienteId));
+      querySnapshot = await getDocs(q);
+    } else {
+      // Consulta simple sin filtros
+      querySnapshot = await getDocs(peersRef);
     }
     
-    const querySnapshot = await getDocs(q);
     const peers: (VpnPeer & { clientes: { nombre: string } })[] = [];
     
     for (const peerDoc of querySnapshot.docs) {
@@ -179,8 +199,19 @@ export async function getPeers(clienteId?: string): Promise<(VpnPeer & { cliente
       } as VpnPeer & { clientes: { nombre: string } });
     }
     
+    // Ordenar en memoria
+    peers.sort((a, b) => {
+      const aOrder = a.display_order || 0;
+      const bOrder = b.display_order || 0;
+      if (aOrder !== bOrder) {
+        return aOrder - bOrder;
+      }
+      return new Date(b.fecha_creacion).getTime() - new Date(a.fecha_creacion).getTime();
+    });
+    
     return peers;
   } catch (error: any) {
+    console.error('Error al obtener peers:', error);
     toast.error('Error al obtener peers: ' + error.message);
     return [];
   }
