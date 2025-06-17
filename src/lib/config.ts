@@ -25,4 +25,3 @@ export const isFirebaseConfigured = () => {
 
 console.log('Database provider:', DATABASE_CONFIG.provider);
 console.log('Firebase configured:', isFirebaseConfigured());
-console.log('Firebase config:', DATABASE_CONFIG.firebase);

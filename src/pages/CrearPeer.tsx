@@ -1,7 +1,6 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getClienteById, Cliente, getClientes, createPeer } from "@/lib/database";
+import { getClienteById, Cliente, getClientes, createPeer } from "@/lib/supabase";
 import PeerForm from "@/components/PeerForm";
 import { PeerFormData } from "@/lib/types";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -27,22 +26,13 @@ export default function CrearPeer() {
   
   const fetchData = async () => {
     try {
-      console.log('Fetching clientes...');
       const clientesData = await getClientes();
-      console.log('Clientes fetched:', clientesData);
       setAllClientes(clientesData);
       
       if (clienteId) {
-        console.log('Fetching specific cliente with ID:', clienteId);
-        try {
-          const clienteData = await getClienteById(clienteId);
-          console.log('Cliente fetched:', clienteData);
-          setCliente(clienteData);
-          setSelectedClienteId(clienteId);
-        } catch (error) {
-          console.error('Error fetching specific cliente:', error);
-          // Si no se puede obtener el cliente específico, continuar sin él
-        }
+        const clienteData = await getClienteById(clienteId);
+        setCliente(clienteData);
+        setSelectedClienteId(clienteId);
       }
     } catch (error) {
       console.error("Error al cargar datos:", error);

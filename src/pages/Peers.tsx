@@ -1,10 +1,9 @@
-
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { getPeers, getClienteById, Cliente, VpnPeer, deletePeer, updatePeer } from "@/lib/database";
+import { getPeers, getClienteById, Cliente, VpnPeer, deletePeer, updatePeer } from "@/lib/supabase";
 import { Plus, Eye, Trash, Download, Search } from "lucide-react";
 import { convertToDownloadableLink } from "@/lib/utils";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
@@ -51,20 +50,13 @@ export default function Peers() {
   const fetchData = async () => {
     setLoading(true);
     try {
-      console.log('Fetching peers for clienteId:', clienteId);
       const peersData = await getPeers(clienteId);
-      console.log('Peers fetched:', peersData);
       setPeers(peersData);
       setFilteredPeers(peersData);
       
       if (clienteId) {
-        try {
-          const clienteData = await getClienteById(clienteId);
-          console.log('Cliente data for peers:', clienteData);
-          setCliente(clienteData);
-        } catch (error) {
-          console.error('Error fetching cliente for peers:', error);
-        }
+        const clienteData = await getClienteById(clienteId);
+        setCliente(clienteData);
       }
     } catch (error) {
       console.error("Error al cargar datos:", error);
