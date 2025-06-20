@@ -192,7 +192,8 @@ export function validatePeerInput(peer: {
 }
 
 export function generateDownloadLink(downloadToken: string, peerName: string): string {
+  // Use the new public download endpoint that doesn't require authentication
   const baseUrl = window.location.origin;
-  const apiUrl = `${baseUrl}/api/download/${downloadToken}`;
-  return apiUrl;
+  const downloadUrl = `${baseUrl}/functions/v1/download/${downloadToken}`;
+  return downloadUrl;
 }
